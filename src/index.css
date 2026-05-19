@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .no-print {
+    display: none !important;
+  }
+  
+  /* Hide sidebar and header inside print mode */
+  aside, header {
+    display: none !important;
+  }
+  
+  /* Ensure the main container expands to fill paper */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
