@@ -24,7 +24,7 @@ Manages projects, tasks, materials, workers, messaging, customer requests, and c
 - **PHP Extensions:** `pdo_mysql`, `mysqli`
 - No Composer dependencies required
 
-## Quick Start
+## Quick Start (Local Dev)
 
 ```bash
 # 1. Clone
@@ -40,6 +40,33 @@ php start.sh
 ```
 
 Open **http://localhost:8000** in your browser.
+
+## Production Deployment (Shared Hosting)
+
+```bash
+# 1. Upload all files to your hosting via FTP / cPanel File Manager
+
+# 2. Create a MySQL database in your hosting control panel (cPanel)
+#    Note the database name, username, and password
+
+# 3. Configure database credentials:
+cp config.local.example.php config.local.php
+```
+Then edit `config.local.php` with your hosting database details:
+```php
+define('OVERRIDE_DB_HOST', 'localhost');
+define('OVERRIDE_DB_NAME', 'cpses_user_smart_ujenzi');
+define('OVERRIDE_DB_USER', 'cpses_user');
+define('OVERRIDE_DB_PASS', 'your-db-password');
+define('OVERRIDE_DB_SOCKET', '');
+```
+
+```bash
+# 4. Import database schema via phpMyAdmin:
+#    - Open phpMyAdmin, select your database
+#    - Import database/schema.sql
+#    Or run via SSH: mysql -u USER -p DATABASE < database/schema.sql
+```
 
 ## Demo Accounts
 

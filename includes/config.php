@@ -1,10 +1,16 @@
 <?php
-// Database config: use env vars on production, fallback to local defaults
-$dbHost    = getenv('DB_HOST') ?: 'localhost';
-$dbName    = getenv('DB_NAME') ?: 'test_smart_ujenzi';
-$dbUser    = getenv('DB_USER') ?: '';
-$dbPass    = getenv('DB_PASS') ?: '';
-$dbSocket  = getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock';
+// Load local overrides if exists (for shared hosting without env vars)
+$localConfig = __DIR__ . '/../config.local.php';
+if (file_exists($localConfig)) {
+    require_once $localConfig;
+}
+
+// Database config: use local overrides or env vars, fallback to local defaults
+$dbHost    = defined('OVERRIDE_DB_HOST') ? OVERRIDE_DB_HOST : (getenv('DB_HOST') ?: 'localhost');
+$dbName    = defined('OVERRIDE_DB_NAME') ? OVERRIDE_DB_NAME : (getenv('DB_NAME') ?: 'test_smart_ujenzi');
+$dbUser    = defined('OVERRIDE_DB_USER') ? OVERRIDE_DB_USER : (getenv('DB_USER') ?: '');
+$dbPass    = defined('OVERRIDE_DB_PASS') ? OVERRIDE_DB_PASS : (getenv('DB_PASS') ?: '');
+$dbSocket  = defined('OVERRIDE_DB_SOCKET') ? OVERRIDE_DB_SOCKET : (getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock');
 $appEnv    = getenv('APP_ENV') ?: 'local'; // local or production
 
 // Error reporting: hide details in production
