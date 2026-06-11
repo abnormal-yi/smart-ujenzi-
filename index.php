@@ -207,11 +207,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
 
         </div>
 
-        <div class="text-center mt-10">
-            <a href="login.php" class="inline-flex items-center px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl transition-colors text-sm">
-                + Register Company
-            </a>
-        </div>
+
     </div>
 </section>
 
