@@ -8,4 +8,4 @@ echo "Server: http://localhost:8000"
 echo "  admin@example.com / admin123"
 echo ""
 
-cd "$DIR" && php -d "extension=pdo_mysql" -S localhost:8000
+cd "$DIR" && APP_ENV=local php -d "extension=pdo_mysql" -S localhost:8000

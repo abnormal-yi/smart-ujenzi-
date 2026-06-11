@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Password input field with floating label -->
                 <div class="relative">
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Password</label>
-                    <input type="password" name="password" value="admin123"
+                    <input type="password" name="password" value="<?= APP_ENV === 'local' ? 'admin123' : '' ?>"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#20D08A] transition-colors"
                            placeholder="********" required>
                 </div>

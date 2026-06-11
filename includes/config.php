@@ -1,38 +1,66 @@
 <?php
-// Start session for authentication and flash messages across pages
+// Database config: use env vars on production, fallback to local defaults
+$dbHost    = getenv('DB_HOST') ?: 'localhost';
+$dbName    = getenv('DB_NAME') ?: 'test_smart_ujenzi';
+$dbUser    = getenv('DB_USER') ?: '';
+$dbPass    = getenv('DB_PASS') ?: '';
+$dbSocket  = getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock';
+$appEnv    = getenv('APP_ENV') ?: 'local'; // local or production
+
+// Error reporting: hide details in production
+if ($appEnv === 'production') {
+    error_reporting(0);
+    ini_set('display_errors', '0');
+} else {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+}
+
+// Session config (must be set before session_start)
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+if ($appEnv === 'production') {
+    ini_set('session.cookie_secure', '1');
+    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.gc_maxlifetime', '7200');
+} else {
+    ini_set('session.gc_maxlifetime', '86400');
+}
 session_start();
 
-// Database connection constants
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'test_smart_ujenzi');
-define('DB_USER', '');
-define('DB_PASS', '');
-define('DB_SOCKET', '/var/run/mysqld/mysqld.sock');
+define('DB_HOST', $dbHost);
+define('DB_NAME', $dbName);
+define('DB_USER', $dbUser);
+define('DB_PASS', $dbPass);
+define('DB_SOCKET', $dbSocket);
+define('APP_ENV', $appEnv);
 
-// Returns a singleton PDO database connection
-// Uses Unix socket if available, otherwise TCP connection
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
-        // Build DSN string: prefer Unix socket over host-based connection
-        $dsn = DB_SOCKET
-            ? "mysql:unix_socket=" . DB_SOCKET . ";dbname=" . DB_NAME . ";charset=utf8mb4"
-            : "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-        // Create PDO instance with exception error mode and associative fetch
-        $pdo = new PDO($dsn, DB_USER, DB_PASS, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
+        try {
+            $dsn = DB_SOCKET && DB_USER === ''
+                ? "mysql:unix_socket=" . DB_SOCKET . ";dbname=" . DB_NAME . ";charset=utf8mb4"
+                : "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+        } catch (PDOException $e) {
+            if (APP_ENV === 'production') {
+                die('Database connection failed. Please check your configuration.');
+            }
+            throw $e;
+        }
     }
     return $pdo;
 }
 
-// Checks whether the current user has an active session
 function isAuthenticated(): bool {
     return isset($_SESSION['user_id']);
 }
 
-// Redirects unauthenticated users to the login page
 function requireAuth(): void {
     if (!isAuthenticated()) {
         header('Location: login.php');
@@ -40,7 +68,6 @@ function requireAuth(): void {
     }
 }
 
-// Performs an HTTP redirect to the given URL and stops execution
 function redirect(string $url): void {
     header("Location: $url");
     exit;

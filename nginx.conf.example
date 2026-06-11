@@ -1,0 +1,46 @@
+# SmartUjenzi - Nginx config for production
+# Place in /etc/nginx/sites-available/smart-ujenzi
+# Then: ln -s /etc/nginx/sites-available/smart-ujenzi /etc/nginx/sites-enabled/
+
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /var/www/smart-ujenzi;
+    index index.php;
+
+    # Deny sensitive directories
+    location ~ ^/(includes|database)/ {
+        deny all;
+    }
+
+    # Deny sensitive files
+    location ~ \.(sql|md|json|sh|env)$ {
+        deny all;
+    }
+
+    # Block setup.php
+    location = /setup.php {
+        deny all;
+    }
+
+    # Serve static assets directly
+    location /assets/ {
+        expires 30d;
+    }
+
+    location /public/ {
+        expires 30d;
+    }
+
+    # PHP-FPM passthrough
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    # Hide hidden files
+    location ~ /\. {
+        deny all;
+    }
+}

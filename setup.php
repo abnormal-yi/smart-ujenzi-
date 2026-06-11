@@ -1,21 +1,21 @@
 <?php
-/**
- * SmartUjenzi - Database Setup Script
- * Usage: php -d extension=pdo_mysql setup.php
- *
- * This script:
- * 1. Creates the database (if it doesn't exist)
- * 2. Executes schema.sql to create tables and insert seed data
- * 3. Displays demo account credentials
- */
+// SmartUjenzi - Database Setup Script
+// Usage: php -d extension=pdo_mysql setup.php
+//   To re-run after already set up: php setup.php force=1
 
-$socket = '/var/run/mysqld/mysqld.sock';
-$dbname = 'test_smart_ujenzi';
+// Only allow CLI execution for security
+if (php_sapi_name() !== 'cli') {
+    die('Setup can only be run from command line. Usage: php setup.php');
+}
+
+$force = isset($argv[1]) && $argv[1] === 'force=1';
+
+$socket = getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock';
+$dbname = getenv('DB_NAME') ?: 'test_smart_ujenzi';
 
 echo "=== SmartUjenzi Database Setup ===\n\n";
 
 try {
-    // Connect to MySQL server without specifying a database
     $dsn = $socket
         ? "mysql:unix_socket=$socket;charset=utf8mb4"
         : "mysql:host=localhost;charset=utf8mb4";
@@ -24,21 +24,36 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 
-    // Create the application database with utf8mb4 support
+    // Check if DB already has tables
+    $exists = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbname'")->fetch();
+    $hasTables = false;
+    if ($exists) {
+        $pdo->exec("USE `$dbname`");
+        $tables = $pdo->query("SHOW TABLES")->fetchAll();
+        $hasTables = count($tables) > 0;
+    }
+
+    if ($hasTables && !$force) {
+        echo "[OK] Database '$dbname' already set up with " . count($tables) . " tables.\n";
+        echo "      To re-run (will wipe data): php setup.php force=1\n\n";
+        exit(0);
+    }
+
+    if ($hasTables && $force) {
+        echo "[WARN] Force re-run: dropping all tables first...\n";
+        $pdo->exec("DROP DATABASE `$dbname`");
+    }
+
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     echo "[OK] Database '$dbname' created or already exists\n";
 
-    // Switch to the application database
     $pdo->exec("USE `$dbname`");
 
-    // Read the schema SQL file and strip the CREATE DATABASE/USE and comment lines
-    // since they were already handled above
     $sql = file_get_contents(__DIR__ . '/database/schema.sql');
     $sql = preg_replace('/^CREATE DATABASE.*?;\s*/im', '', $sql);
     $sql = preg_replace('/^USE .*?;\s*/im', '', $sql);
     $sql = preg_replace('/^-- .*$/m', '', $sql);
 
-    // Split the SQL into individual statements and execute each one
     $statements = array_filter(
         array_map('trim', explode(';', $sql)),
         fn($s) => !empty($s)
@@ -60,7 +75,6 @@ try {
     echo "  or: php -d extension=pdo_mysql -S localhost:8000\n\n";
 
 } catch (PDOException $e) {
-    // Display any database connection or execution errors
     echo "[ERROR] " . $e->getMessage() . "\n";
     exit(1);
 }
