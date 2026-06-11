@@ -2,8 +2,8 @@
 -- Run: mysql -u root < database/schema.sql
 -- Or use: php -d extension=pdo_mysql setup.php
 
-CREATE DATABASE IF NOT EXISTS smart_ujenzi;
-USE smart_ujenzi;
+CREATE DATABASE IF NOT EXISTS test_smart_ujenzi;
+USE test_smart_ujenzi;
 
 SET FOREIGN_KEY_CHECKS = 0;
 
