@@ -1,18 +1,23 @@
 <?php
+// Tasks management page: create tasks, update task statuses, and notify users
 $pageTitle = 'Tasks';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'manager', 'supervisor', 'constructor']);
 require_once __DIR__ . '/includes/header.php';
 
+// Handle POST actions: create task or update status with notifications
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'create') {
+        // Insert a new task linked to a project and optional supervisor
         executeQuery('INSERT INTO tasks (project_id, name, description, supervisor_id, deadline) VALUES (?, ?, ?, ?, ?)',
             [$_POST['project_id'], $_POST['name'], $_POST['description'], $_POST['supervisor_id'] ?: null, $_POST['deadline'] ?: null]);
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Task created successfully'];
     } elseif ($_POST['action'] === 'status') {
+        // Update task status and notify admin/manager users about the change
         executeQuery('UPDATE tasks SET status = ? WHERE id = ?', [$_POST['status'], $_POST['id']]);
         $task = runQuery('SELECT * FROM tasks WHERE id = ?', [$_POST['id']]);
         if ($task) {
+            // Insert a notification for all admin and manager users
             executeQuery('INSERT INTO notifications (user_id, message, is_read) SELECT id, ?, 0 FROM users WHERE role IN ("admin", "manager")',
                 ["Task '{$task[0]['name']}' status updated to {$_POST['status']}"]);
         }
@@ -21,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('tasks.php');
 }
 
+// Fetch all tasks with project and supervisor names; fetch related data for forms
 $tasks = runQuery('SELECT t.*, p.name as project_name, u.name as supervisor_name FROM tasks t LEFT JOIN projects p ON t.project_id = p.id LEFT JOIN users u ON t.supervisor_id = u.id ORDER BY t.id DESC');
 $projects = runQuery('SELECT id, name FROM projects');
 $supervisors = runQuery('SELECT id, name FROM users WHERE role IN ("admin", "manager", "supervisor")');
@@ -28,12 +34,14 @@ $statuses = ['Not Started', 'In Progress', 'Completed', 'On Hold'];
 $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', 'Completed' => 'badge-green', 'On Hold' => 'badge-red'];
 ?>
 
+<!-- Tasks listing with table and create button -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500"><?= count($tasks) ?> total tasks</p>
         <button onclick="openModal('create-modal')" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium">+ New Task</button>
     </div>
 
+    <!-- Tasks data table -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
@@ -57,6 +65,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
                     </td>
                     <td class="py-3 text-gray-600"><?= $t['deadline'] ?? '—' ?></td>
                     <td class="py-3">
+                        <!-- Button to open status update modal for this task -->
                         <button onclick="openModal('status-modal-<?= $t['id'] ?>')" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 transition-colors">Status</button>
                     </td>
                 </tr>
@@ -66,7 +75,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
     </div>
 </div>
 
-<!-- Create Modal -->
+<!-- Modal: Create New Task -->
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
     <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-16 p-6 z-10">
@@ -113,7 +122,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
     </div>
 </div>
 
-<!-- Status Modals -->
+<!-- Modal per task: Update Status -->
 <?php foreach ($tasks as $t): ?>
 <div id="status-modal-<?= $t['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('status-modal-<?= $t['id'] ?>')"></div>
@@ -137,6 +146,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
 </div>
 <?php endforeach; ?>
 
+<!-- Modal toggle helper functions -->
 <script>
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }

@@ -1,15 +1,18 @@
 <?php
+// Reports page: project/task overview, overdue tasks, and stock reports
 $pageTitle = 'Reports';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'manager']);
 require_once __DIR__ . '/includes/header.php';
 
+// Fetch all data needed for reports
 $projects = runQuery('SELECT p.*, u.name as manager_name FROM projects p LEFT JOIN users u ON p.manager_id = u.id');
 $tasks = runQuery('SELECT t.*, p.name as project_name FROM tasks t LEFT JOIN projects p ON t.project_id = p.id');
 $materials = runQuery('SELECT * FROM materials');
 $resources = runQuery('SELECT * FROM resources');
 $lowStock = array_filter($materials, fn($m) => $m['quantity'] <= $m['low_stock_threshold']);
 
+// Identify overdue tasks: past deadline and not yet completed
 $overdue = [];
 foreach ($tasks as $t) {
     if ($t['deadline'] && $t['status'] !== 'Completed' && $t['deadline'] < date('Y-m-d')) {
@@ -18,8 +21,9 @@ foreach ($tasks as $t) {
 }
 ?>
 
+<!-- Summary cards and overdue tasks side by side -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Summary -->
+    <!-- Key metrics summary list -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">📊 Summary</h3>
         <div class="space-y-3">
@@ -50,7 +54,7 @@ foreach ($tasks as $t) {
         </div>
     </div>
 
-    <!-- Overdue Tasks -->
+    <!-- Overdue tasks list with red warning cards -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">⚠️ Overdue Tasks</h3>
         <?php if (empty($overdue)): ?>
@@ -68,7 +72,7 @@ foreach ($tasks as $t) {
     </div>
 </div>
 
-<!-- Projects Detail Table -->
+<!-- Projects overview table with task-based progress bars -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
     <h3 class="text-lg font-bold text-gray-800 mb-4">🏗️ Projects Overview</h3>
     <div class="overflow-x-auto">
@@ -84,6 +88,7 @@ foreach ($tasks as $t) {
             <tbody>
                 <?php foreach ($projects as $p): ?>
                 <?php
+                    // Calculate completion percentage based on tasks
                     $totalTasks = runQuery('SELECT COUNT(*) as c FROM tasks WHERE project_id = ?', [$p['id']])[0]['c'];
                     $completedTasks = runQuery('SELECT COUNT(*) as c FROM tasks WHERE project_id = ? AND status = "Completed"', [$p['id']])[0]['c'];
                     $progress = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
@@ -95,6 +100,7 @@ foreach ($tasks as $t) {
                         <span class="badge <?= $p['status'] === 'Completed' ? 'badge-green' : ($p['status'] === 'Pending' ? 'badge-yellow' : 'badge-blue') ?>"><?= $p['status'] ?></span>
                     </td>
                     <td class="py-3">
+                        <!-- Progress bar showing percentage of completed tasks -->
                         <div class="flex items-center space-x-2">
                             <div class="w-32 bg-gray-100 rounded-full h-2">
                                 <div class="bg-green-500 h-2 rounded-full" style="width: <?= $progress ?>%"></div>
@@ -109,7 +115,7 @@ foreach ($tasks as $t) {
     </div>
 </div>
 
-<!-- Low Stock Report -->
+<!-- Materials stock report with low stock highlighting -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <h3 class="text-lg font-bold text-gray-800 mb-4">📦 Materials Stock Report</h3>
     <div class="overflow-x-auto">

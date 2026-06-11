@@ -1,4 +1,5 @@
 <?php
+// Customer Requests page: customers submit requests, admin/manager review and propose
 $pageTitle = 'Customer Requests';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'manager', 'customer']);
@@ -7,16 +8,20 @@ require_once __DIR__ . '/includes/header.php';
 $role = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 
+// Handle POST actions: create new request or update existing one
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'create') {
+        // Customers can submit a new project request
         executeQuery('INSERT INTO customer_requests (customer_id, project_type, location, budget_range, description) VALUES (?, ?, ?, ?, ?)',
             [$userId, $_POST['project_type'], $_POST['location'], $_POST['budget_range'], $_POST['description']]);
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Request submitted'];
         redirect('customer_requests.php');
     } elseif ($_POST['action'] === 'update') {
+        // Update request: status, proposal, budget, deadline (only non-empty values override)
         executeQuery('UPDATE customer_requests SET status = COALESCE(NULLIF(?, ""), status), company_proposal = COALESCE(NULLIF(?, ""), company_proposal), proposed_budget = COALESCE(NULLIF(?, ""), proposed_budget), proposed_deadline = COALESCE(NULLIF(?, ""), proposed_deadline) WHERE id = ?',
             [$_POST['status'], $_POST['company_proposal'], $_POST['proposed_budget'], $_POST['proposed_deadline'], $_POST['id']]);
 
+        // If a customer accepts the proposal, automatically create a project
         if (($_POST['status'] ?? '') === 'Accepted' && $role === 'customer') {
             $reqData = runQuery('SELECT * FROM customer_requests WHERE id = ?', [$_POST['id']]);
             if ($reqData) {
@@ -29,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Fetch requests: customers see only theirs; admins/managers see all
 $query = 'SELECT cr.*, u.name as customer_name, u.email as customer_email FROM customer_requests cr JOIN users u ON cr.customer_id = u.id';
 $params = [];
 if ($role === 'customer') {
@@ -41,14 +47,17 @@ $statuses = ['Pending', 'Reviewed', 'Accepted', 'Rejected'];
 $canManage = in_array($role, ['admin', 'manager']);
 ?>
 
+<!-- Requests listing table -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500"><?= count($requests) ?> requests</p>
         <?php if ($role === 'customer'): ?>
+            <!-- Only customers see the "New Request" button -->
             <button onclick="openModal('create-modal')" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium">+ New Request</button>
         <?php endif; ?>
     </div>
 
+    <!-- Requests data table -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
@@ -81,7 +90,7 @@ $canManage = in_array($role, ['admin', 'manager']);
     </div>
 </div>
 
-<!-- Create Modal -->
+<!-- Modal: Create New Request (customers only) -->
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
     <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-20 p-6 z-10">
@@ -114,13 +123,14 @@ $canManage = in_array($role, ['admin', 'manager']);
     </div>
 </div>
 
-<!-- Detail/Update Modals -->
+<!-- Modal per request: View Details & Update -->
 <?php foreach ($requests as $r): ?>
 <div id="detail-modal-<?= $r['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('detail-modal-<?= $r['id'] ?>')"></div>
     <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-12 p-6 z-10 max-h-[80vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Request Details</h3>
 
+        <!-- Read-only summary of the request -->
         <div class="space-y-3 mb-6">
             <div><span class="text-sm text-gray-500">Customer:</span> <span class="font-medium"><?= htmlspecialchars($r['customer_name']) ?></span></div>
             <div><span class="text-sm text-gray-500">Project Type:</span> <span class="font-medium"><?= htmlspecialchars($r['project_type']) ?></span></div>
@@ -142,11 +152,13 @@ $canManage = in_array($role, ['admin', 'manager']);
             <?php endif; ?>
         </div>
 
+        <!-- Update form: admin/manager can set status, proposal, budget, deadline -->
         <form method="POST" class="border-t border-gray-200 pt-4">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" value="<?= $r['id'] ?>">
 
             <?php if ($canManage): ?>
+                <!-- Admin/Manager fields: status change, company proposal, budget, deadline -->
                 <div class="space-y-3">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -174,6 +186,7 @@ $canManage = in_array($role, ['admin', 'manager']);
                 </div>
             <?php endif; ?>
 
+            <!-- Customer decision field: accept or reject the company proposal -->
             <?php if ($role === 'customer' && $r['status'] !== 'Accepted' && $r['status'] !== 'Rejected'): ?>
                 <div class="mt-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Your decision</label>
@@ -196,6 +209,7 @@ $canManage = in_array($role, ['admin', 'manager']);
 </div>
 <?php endforeach; ?>
 
+<!-- Modal toggle helper functions -->
 <script>
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }

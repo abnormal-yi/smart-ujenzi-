@@ -1,9 +1,11 @@
 <?php
+// Workers (Mafundi) & Equipment management page: add resources and assign to projects
 $pageTitle = 'Mafundi & Equipment';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'manager', 'supervisor']);
 require_once __DIR__ . '/includes/header.php';
 
+// Handle resource creation (labor or equipment)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'create') {
     executeQuery('INSERT INTO resources (type, name, details) VALUES (?, ?, ?)',
         [$_POST['type'], $_POST['name'], $_POST['details']]);
@@ -11,13 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'create') {
     redirect('workers.php');
 }
 
+// Fetch all resources and separate into labor and equipment arrays for display
 $resources = runQuery('SELECT * FROM resources ORDER BY id DESC');
 $labor = array_filter($resources, fn($r) => $r['type'] === 'labor');
 $equipment = array_filter($resources, fn($r) => $r['type'] === 'equipment');
 
-// Allocation handling
-$allocMessage = '';
+// Handle resource allocation to a project
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'allocate') {
+    // Insert an allocation record linking a resource to a project
     executeQuery('INSERT INTO allocations (project_id, type, item_id, quantity) VALUES (?, "resource", ?, 1)',
         [$_POST['project_id'], $_POST['resource_id']]);
     $_SESSION['flash'] = ['type' => 'success', 'message' => 'Resource allocated to project'];
@@ -25,11 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'allocate') {
 }
 
 $projects = runQuery('SELECT id, name FROM projects');
+// Fetch all current allocations with resource and project names via JOINs
 $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource_type, p.name as project_name FROM allocations a JOIN resources r ON a.item_id = r.id AND a.type = "resource" JOIN projects p ON a.project_id = p.id');
 ?>
 
+<!-- Two-column layout: labor list on left, equipment list on right -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Labor -->
+    <!-- Labor (Mafundi) card list -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">👷 Labor</h3>
         <div class="space-y-3">
@@ -39,13 +44,14 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
                     <p class="font-medium text-gray-800"><?= htmlspecialchars($l['name']) ?></p>
                     <p class="text-sm text-gray-500"><?= htmlspecialchars($l['details'] ?? '') ?></p>
                 </div>
+                <!-- Button to open assignment modal for this labor resource -->
                 <button onclick="openModal('alloc-modal-<?= $l['id'] ?>')" class="text-xs px-3 py-1 bg-slate-800 text-white rounded hover:bg-slate-700">Assign</button>
             </div>
             <?php endforeach; ?>
         </div>
     </div>
 
-    <!-- Equipment -->
+    <!-- Equipment card list -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">🔧 Equipment</h3>
         <div class="space-y-3">
@@ -55,6 +61,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
                     <p class="font-medium text-gray-800"><?= htmlspecialchars($e['name']) ?></p>
                     <p class="text-sm text-gray-500"><?= htmlspecialchars($e['details'] ?? '') ?></p>
                 </div>
+                <!-- Button to open assignment modal for this equipment -->
                 <button onclick="openModal('alloc-modal-<?= $e['id'] ?>')" class="text-xs px-3 py-1 bg-slate-800 text-white rounded hover:bg-slate-700">Assign</button>
             </div>
             <?php endforeach; ?>
@@ -62,7 +69,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
     </div>
 </div>
 
-<!-- Add Resource -->
+<!-- Add new resource form (labor or equipment) -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
     <h3 class="text-lg font-bold text-gray-800 mb-4">+ Add Resource</h3>
     <form method="POST" class="flex flex-wrap gap-4 items-end">
@@ -86,7 +93,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
     </form>
 </div>
 
-<!-- Allocations Table -->
+<!-- Current allocations table showing which resources are assigned to which projects -->
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <h3 class="text-lg font-bold text-gray-800 mb-4">📋 Current Allocations</h3>
     <div class="overflow-x-auto">
@@ -111,7 +118,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
     </div>
 </div>
 
-<!-- Allocation Modals -->
+<!-- Modal per resource: Assign to Project -->
 <?php foreach ($resources as $r): ?>
 <div id="alloc-modal-<?= $r['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('alloc-modal-<?= $r['id'] ?>')"></div>
@@ -121,6 +128,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
         <form method="POST">
             <input type="hidden" name="action" value="allocate">
             <input type="hidden" name="resource_id" value="<?= $r['id'] ?>">
+            <!-- Dropdown to select which project to assign this resource to -->
             <select name="project_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
                 <option value="">Select project</option>
                 <?php foreach ($projects as $p): ?>
@@ -136,6 +144,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
 </div>
 <?php endforeach; ?>
 
+<!-- Modal toggle helper functions -->
 <script>
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
