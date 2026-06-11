@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartUjenzi - Construction Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="min-h-screen bg-gray-50 flex">
+
+<?php
+require_once __DIR__ . '/functions.php';
+requireAuth();
+
+$role = $_SESSION['role'] ?? '';
+$userName = $_SESSION['user_name'] ?? 'User';
+
+$notifications = getNotifications($_SESSION['user_id']);
+$unreadCount = getUnreadCount($_SESSION['user_id']);
+
+$navItems = [
+    ['name' => 'Dashboard', 'path' => 'dashboard.php', 'icon' => '📊', 'roles' => ['admin', 'manager', 'supervisor', 'constructor', 'customer']],
+    ['name' => 'Customer Requests', 'path' => 'customer_requests.php', 'icon' => '📩', 'roles' => ['admin', 'manager', 'customer']],
+    ['name' => 'Projects', 'path' => 'projects.php', 'icon' => '🏗️', 'roles' => ['admin', 'manager']],
+    ['name' => 'Tasks', 'path' => 'tasks.php', 'icon' => '✅', 'roles' => ['admin', 'manager', 'supervisor', 'constructor']],
+    ['name' => 'Mafundi & Equipment', 'path' => 'workers.php', 'icon' => '👷', 'roles' => ['admin', 'manager', 'supervisor']],
+    ['name' => 'Materials', 'path' => 'materials.php', 'icon' => '📦', 'roles' => ['admin', 'manager', 'supervisor']],
+    ['name' => 'Discussions', 'path' => 'messages.php', 'icon' => '💬', 'roles' => ['admin', 'manager', 'supervisor']],
+    ['name' => 'Reports', 'path' => 'reports.php', 'icon' => '📄', 'roles' => ['admin', 'manager']],
+];
+
+$filteredNav = array_filter($navItems, fn($item) => in_array($role, $item['roles']));
+?>
+
+<!-- Sidebar -->
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-slate-900 text-white transform -translate-x-full lg:translate-x-0 lg:static lg:inset-auto transition-transform duration-300">
+    <div class="flex items-center justify-center h-16 border-b border-gray-800">
+        <h1 class="text-xl font-bold tracking-wider">SMART UJENZI</h1>
+    </div>
+    <nav class="p-4 space-y-2">
+        <?php foreach ($filteredNav as $item): ?>
+            <a href="<?= $item['path'] ?>"
+               class="flex items-center p-3 rounded-lg hover:bg-slate-800 text-gray-300 hover:text-white transition-colors <?= basename($_SERVER['PHP_SELF']) === $item['path'] ? 'bg-slate-800 text-white' : '' ?>">
+                <span class="mr-3"><?= $item['icon'] ?></span>
+                <?= $item['name'] ?>
+            </a>
+        <?php endforeach; ?>
+        <a href="logout.php" class="flex items-center p-3 rounded-lg hover:bg-red-900/50 text-red-400 w-full transition-colors mt-8">
+            <span class="mr-3">🚪</span> Logout
+        </a>
+    </nav>
+</aside>
+
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" class="fixed inset-0 z-20 bg-black/50 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<!-- Main Content -->
+<div class="flex-1 flex flex-col min-w-0">
+    <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8">
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+
+        <div class="flex items-center space-x-4 ml-auto relative">
+            <!-- Notification Bell -->
+            <div class="relative">
+                <button onclick="toggleNotifications()" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <?php if ($unreadCount > 0): ?>
+                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <?php endif; ?>
+                </button>
+
+                <div id="notif-dropdown" class="hidden absolute top-12 right-0 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 flex flex-col">
+                    <div class="p-3 border-b border-gray-100 font-bold text-gray-800 flex justify-between items-center">
+                        <span>Notifications</span>
+                        <?php if ($unreadCount > 0): ?>
+                            <span class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full"><?= $unreadCount ?> unread</span>
+                        <?php endif; ?>
+                    </div>
+                    <div class="overflow-y-auto flex-1">
+                        <?php if (empty($notifications)): ?>
+                            <div class="p-4 text-center text-gray-500 text-sm">No notifications</div>
+                        <?php else: ?>
+                            <?php foreach ($notifications as $n): ?>
+                                <div onclick="markRead(<?= $n['id'] ?>)" class="p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors <?= $n['is_read'] ? 'opacity-50' : 'bg-blue-50/30' ?>">
+                                    <div class="flex items-start">
+                                        <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 <?= $n['is_read'] ? 'text-gray-400' : 'text-blue-500' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                                        <div>
+                                            <p class="text-sm <?= $n['is_read'] ? 'text-gray-600' : 'text-gray-800 font-medium' ?>"><?= htmlspecialchars($n['message']) ?></p>
+                                            <span class="text-xs text-gray-400"><?= date('M j, Y g:i A', strtotime($n['created_at'])) ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-semibold text-sm">
+                <?= strtoupper(substr($userName, 0, 2)) ?>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 p-4 lg:p-8 overflow-y-auto relative z-0">
+        <!-- Page Title -->
+        <?php if (isset($pageTitle)): ?>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6"><?= $pageTitle ?></h2>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['flash'])): ?>
+            <div class="mb-4 p-4 rounded-lg text-sm <?= $_SESSION['flash']['type'] === 'success' ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-red-100 text-red-700 border border-red-200' ?>">
+                <?= $_SESSION['flash']['message'] ?>
+            </div>
+        <?php unset($_SESSION['flash']); endif; ?>

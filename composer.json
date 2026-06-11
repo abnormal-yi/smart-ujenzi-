@@ -1,0 +1,9 @@
+{
+    "name": "smart/ujenzi",
+    "description": "SmartUjenzi - Construction Management System",
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-mysqli": "*"
+    }
+}
