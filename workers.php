@@ -76,7 +76,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
         <input type="hidden" name="action" value="create">
         <div>
             <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
-            <select name="type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500">
+            <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-500">
                 <option value="labor">Labor</option>
                 <option value="equipment">Equipment</option>
             </select>
@@ -122,7 +122,7 @@ $allocations = runQuery('SELECT a.*, r.name as resource_name, r.type as resource
 <?php foreach ($resources as $r): ?>
 <div id="alloc-modal-<?= $r['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('alloc-modal-<?= $r['id'] ?>')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-auto mt-32 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 mt-32 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-2">Assign Resource</h3>
         <p class="text-sm text-gray-500 mb-4"><?= htmlspecialchars($r['name']) ?></p>
         <form method="POST">

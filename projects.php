@@ -81,7 +81,7 @@ $statusColors = ['Pending' => 'badge-yellow', 'Ongoing' => 'badge-blue', 'In Pro
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <!-- Overlay background that closes modal on click -->
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-20 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-20 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-4">New Project</h3>
         <form method="POST">
             <!-- Hidden action field tells the server this is a create operation -->
@@ -127,7 +127,7 @@ $statusColors = ['Pending' => 'badge-yellow', 'Ongoing' => 'badge-blue', 'In Pro
 <?php foreach ($projects as $p): ?>
 <div id="status-modal-<?= $p['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('status-modal-<?= $p['id'] ?>')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-auto mt-32 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 mt-32 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-2">Update Status</h3>
         <p class="text-sm text-gray-500 mb-4"><?= htmlspecialchars($p['name']) ?></p>
         <form method="POST">

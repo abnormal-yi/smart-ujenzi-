@@ -78,7 +78,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
 <!-- Modal: Create New Task -->
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-16 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-16 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-4">New Task</h3>
         <form method="POST">
             <input type="hidden" name="action" value="create">
@@ -126,7 +126,7 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
 <?php foreach ($tasks as $t): ?>
 <div id="status-modal-<?= $t['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('status-modal-<?= $t['id'] ?>')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-auto mt-32 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 mt-32 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-2">Update Status</h3>
         <p class="text-sm text-gray-500 mb-4"><?= htmlspecialchars($t['name']) ?></p>
         <form method="POST">

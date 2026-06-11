@@ -93,7 +93,7 @@ $canManage = in_array($role, ['admin', 'manager']);
 <!-- Modal: Create New Request (customers only) -->
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-20 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-20 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-4">New Request</h3>
         <form method="POST">
             <input type="hidden" name="action" value="create">
@@ -127,7 +127,7 @@ $canManage = in_array($role, ['admin', 'manager']);
 <?php foreach ($requests as $r): ?>
 <div id="detail-modal-<?= $r['id'] ?>" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('detail-modal-<?= $r['id'] ?>')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-12 p-6 z-10 max-h-[80vh] overflow-y-auto">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-12 p-6 z-10 max-h-[80vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Request Details</h3>
 
         <!-- Read-only summary of the request -->

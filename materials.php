@@ -86,7 +86,7 @@ $materials = runQuery('SELECT * FROM materials ORDER BY id DESC');
 <!-- Modal: Add New Material -->
 <div id="create-modal" class="modal fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-auto mt-20 p-6 z-10">
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 mt-20 p-6 z-10">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Add Material</h3>
         <form method="POST">
             <input type="hidden" name="action" value="create">
