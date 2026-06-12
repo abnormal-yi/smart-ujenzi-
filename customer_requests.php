@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (($_POST['status'] ?? '') === 'Accepted' && $role === 'customer') {
             $reqData = runQuery('SELECT * FROM customer_requests WHERE id = ?', [$_POST['id']]);
             if ($reqData) {
-                executeQuery('INSERT INTO projects (name, description, status, manager_id, start_date, end_date) VALUES (?, ?, "Pending", 1, CURDATE(), ?)',
-                    [$reqData[0]['project_type'] . ' - ' . $reqData[0]['location'], $reqData[0]['description'], $reqData[0]['proposed_deadline'] ?? '']);
+                executeQuery('INSERT INTO projects (name, description, customer_id, status, manager_id, start_date, end_date) VALUES (?, ?, ?, "Pending", 1, CURDATE(), ?)',
+                    [$reqData[0]['project_type'] . ' - ' . $reqData[0]['location'], $reqData[0]['description'], $reqData[0]['customer_id'], $reqData[0]['proposed_deadline'] ?? '']);
             }
         }
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Request updated'];

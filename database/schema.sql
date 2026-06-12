@@ -10,6 +10,8 @@ USE test_smart_ujenzi;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop all existing tables to ensure a clean slate before re-creating
+DROP TABLE IF EXISTS project_media;
+DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS messages;
 DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS allocations;
@@ -46,6 +48,7 @@ CREATE TABLE projects (
     description TEXT,                         -- Project description
     status VARCHAR(50) DEFAULT 'Pending',    -- Status: Pending, Ongoing, In Progress, Completed, On Hold
     manager_id INT,                          -- Foreign key to users(id) - the project manager
+    customer_id INT,                         -- Foreign key to users(id) - the customer who owns this project
     start_date DATE,                         -- Project start date
     end_date DATE,                           -- Project end date
     FOREIGN KEY(manager_id) REFERENCES users(id)
@@ -169,6 +172,39 @@ CREATE TABLE customer_requests (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
+-- Table: payments
+-- Customer payment records for projects
+-- ====================
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    payment_date DATE NOT NULL,
+    status VARCHAR(50) DEFAULT 'Completed',
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(project_id) REFERENCES projects(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: project_media
+-- Supervisor-uploaded photos/videos documenting project progress
+-- ====================
+CREATE TABLE project_media (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    project_id INT NOT NULL,
+    task_id INT DEFAULT NULL,
+    uploaded_by INT NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    type VARCHAR(20) NOT NULL DEFAULT 'image',
+    caption TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(project_id) REFERENCES projects(id),
+    FOREIGN KEY(task_id) REFERENCES tasks(id),
+    FOREIGN KEY(uploaded_by) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
 -- Seed Data
 -- ====================
 
@@ -194,11 +230,11 @@ INSERT INTO customer_requests (customer_id, project_type, location, budget_range
 (6, 'Residential House', 'Dar es Salaam, Masaki', '50M - 100M TZS', 'Looking for a reliable company to build a 4-bedroom house. Have plot already.', 'Pending');
 
 -- Sample projects with different statuses
-INSERT INTO projects (id, name, description, status, manager_id, start_date, end_date) VALUES
-(1, 'IAA New Library', 'Construction of a modern library', 'Ongoing', 2, '2025-01-01', '2026-05-01'),
-(2, 'Hostel Block B', 'Expansion of students hostel', 'Pending', 2, '2025-08-01', '2026-12-01'),
-(3, 'City Mall Extension', 'Adding a new wing to City Mall', 'In Progress', 5, '2025-10-10', '2027-02-15'),
-(4, 'Mwanza Hospital Block', 'New maternity ward', 'Completed', 2, '2023-01-05', '2024-12-20');
+INSERT INTO projects (id, name, description, status, manager_id, customer_id, start_date, end_date) VALUES
+(1, 'IAA New Library', 'Construction of a modern library', 'Ongoing', 2, 6, '2025-01-01', '2026-05-01'),
+(2, 'Hostel Block B', 'Expansion of students hostel', 'Pending', 2, NULL, '2025-08-01', '2026-12-01'),
+(3, 'City Mall Extension', 'Adding a new wing to City Mall', 'In Progress', 5, NULL, '2025-10-10', '2027-02-15'),
+(4, 'Mwanza Hospital Block', 'New maternity ward', 'Completed', 2, 6, '2023-01-05', '2024-12-20');
 
 -- Tasks assigned to various projects and supervisors
 INSERT INTO tasks (project_id, name, description, status, supervisor_id, deadline) VALUES
@@ -250,3 +286,17 @@ INSERT INTO messages (project_id, sender_id, message, created_at) VALUES
 (1, 3, 'Yes sir, we just received 150 bags.', '2026-05-01 10:15:00'),
 (1, 2, 'Great, start the foundation laying immediately.', '2026-05-01 10:20:00'),
 (2, 4, 'Site clearance is done. Ready for excavation.', '2025-08-15 16:00:00');
+
+-- Sample payments (customer John Mteja for project IAA Library)
+INSERT INTO payments (project_id, amount, payment_date, status, description) VALUES
+(1, 15000000.00, '2025-01-15', 'Completed', 'Initial deposit for foundation work'),
+(1, 25000000.00, '2025-03-01', 'Completed', 'Phase 1 milestone payment'),
+(1, 10000000.00, '2025-06-10', 'Completed', 'Brickwork materials advance'),
+(4, 50000000.00, '2024-06-01', 'Completed', 'Full payment for Mwanza Hospital Block');
+
+-- Sample media uploads (supervisor documented progress)
+INSERT INTO project_media (project_id, task_id, uploaded_by, file_path, type, caption) VALUES
+(1, 1, 3, 'public/uploads/foundation-excavation.jpg', 'image', 'Foundation excavation complete - depth 2m as per spec'),
+(1, 1, 3, 'public/uploads/foundation-concrete.jpg', 'image', 'Concrete pouring for foundation footings'),
+(1, 2, 3, 'public/uploads/brickwork-progress.jpg', 'image', 'Ground floor brickwork - east wall progress'),
+(3, 5, 3, 'public/uploads/steel-columns.jpg', 'image', 'Steel columns erected for City Mall extension');

@@ -5,7 +5,7 @@ require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'manager', 'supervisor', 'constructor']);
 require_once __DIR__ . '/includes/header.php';
 
-// Handle POST actions: create task or update status with notifications
+// Handle POST actions: create task, update status, or upload media
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'create') {
         // Insert a new task linked to a project and optional supervisor
@@ -22,6 +22,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ["Task '{$task[0]['name']}' status updated to {$_POST['status']}"]);
         }
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Task status updated'];
+    } elseif ($_POST['action'] === 'upload_media') {
+        // Handle photo/video upload from supervisor
+        $projectId = $_POST['project_id'];
+        $taskId = $_POST['task_id'] ?: null;
+        $caption = $_POST['caption'] ?? '';
+        $file = $_FILES['media_file'] ?? null;
+
+        if ($file && $file['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mov', 'avi'];
+            if (in_array($ext, $allowed)) {
+                $type = in_array($ext, ['mp4', 'mov', 'avi']) ? 'video' : 'image';
+                $filename = uniqid('media_') . '.' . $ext;
+                $dest = __DIR__ . '/public/uploads/' . $filename;
+                move_uploaded_file($file['tmp_name'], $dest);
+                executeQuery('INSERT INTO project_media (project_id, task_id, uploaded_by, file_path, type, caption) VALUES (?, ?, ?, ?, ?, ?)',
+                    [$projectId, $taskId, $_SESSION['user_id'], 'public/uploads/' . $filename, $type, $caption]);
+                $_SESSION['flash'] = ['type' => 'success', 'message' => 'Media uploaded'];
+            } else {
+                $_SESSION['flash'] = ['type' => 'error', 'message' => 'Invalid file type. Allowed: jpg, png, gif, webp, mp4, mov'];
+            }
+        } else {
+            $_SESSION['flash'] = ['type' => 'error', 'message' => 'Upload failed'];
+        }
     }
     redirect('tasks.php');
 }
@@ -30,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $tasks = runQuery('SELECT t.*, p.name as project_name, u.name as supervisor_name FROM tasks t LEFT JOIN projects p ON t.project_id = p.id LEFT JOIN users u ON t.supervisor_id = u.id ORDER BY t.id DESC');
 $projects = runQuery('SELECT id, name FROM projects');
 $supervisors = runQuery('SELECT id, name FROM users WHERE role IN ("admin", "manager", "supervisor")');
+$role = $_SESSION['role'];
 $statuses = ['Not Started', 'In Progress', 'Completed', 'On Hold'];
 $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', 'Completed' => 'badge-green', 'On Hold' => 'badge-red'];
 ?>
@@ -67,6 +92,9 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
                     <td class="py-3">
                         <!-- Button to open status update modal for this task -->
                         <button onclick="openModal('status-modal-<?= $t['id'] ?>')" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-100 transition-colors">Status</button>
+                        <?php if ($role === 'supervisor' || $role === 'admin' || $role === 'manager'): ?>
+                        <button onclick="openModal('media-modal-<?= $t['id'] ?>')" class="text-xs px-3 py-1 rounded border border-blue-300 text-blue-600 hover:bg-blue-50 transition-colors ml-1">📷</button>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -140,6 +168,35 @@ $statusColors = ['Not Started' => 'badge-gray', 'In Progress' => 'badge-blue', '
             <div class="flex justify-end space-x-3 mt-4">
                 <button type="button" onclick="closeModal('status-modal-<?= $t['id'] ?>')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
                 <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Media upload modal -->
+<div id="media-modal-<?= $t['id'] ?>" class="modal fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50" onclick="closeModal('media-modal-<?= $t['id'] ?>')"></div>
+    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full mx-4 mt-20 p-6 z-10">
+        <h3 class="text-lg font-bold text-gray-800 mb-2">Upload Media</h3>
+        <p class="text-sm text-gray-500 mb-4"><?= htmlspecialchars($t['name']) ?></p>
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="action" value="upload_media">
+            <input type="hidden" name="project_id" value="<?= $t['project_id'] ?>">
+            <input type="hidden" name="task_id" value="<?= $t['id'] ?>">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Photo / Video</label>
+                    <input type="file" name="media_file" accept="image/*,video/*" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Caption</label>
+                    <input type="text" name="caption" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" placeholder="e.g. Foundation digging progress">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button type="button" onclick="closeModal('media-modal-<?= $t['id'] ?>')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">Upload</button>
             </div>
         </form>
     </div>
