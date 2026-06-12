@@ -71,6 +71,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                         <a href="dashboard.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-colors text-center">Go to Dashboard</a>
                     <?php else: ?>
                         <a href="login.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-colors text-center">Start Free Trial</a>
+                        <a href="register.php" class="border border-gray-600 hover:border-gray-500 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-center">Create Account</a>
                         <a href="#contractors" class="border border-gray-600 hover:border-gray-500 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-center">Find a Builder</a>
                     <?php endif; ?>
                 </div>

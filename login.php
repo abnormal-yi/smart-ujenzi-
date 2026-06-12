@@ -130,7 +130,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
 
                 <!-- Demo accounts reference for testing -->
-                <div class="text-center mt-6">
+                <p class="text-gray-400 text-sm mt-6">
+                    Don't have an account?
+                    <a href="register.php" class="text-yellow-500 hover:underline font-medium">Register</a>
+                </p>
+                <div class="text-center mt-4">
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Demo Accounts:<br>
                     <p class="text-gray-400 text-sm leading-relaxed">
                         Demo Accounts:<br>
                         <span class="text-gray-300">admin@example.com / admin123 (Admin)</span><br>
