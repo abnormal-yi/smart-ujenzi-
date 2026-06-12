@@ -62,7 +62,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                     Finally, Construction
                     <span class="block text-yellow-500">Has Brains!</span>
                 </h1>
-                <p class="text-gray-400 text-base sm:text-lg lg:text-xl mt-6 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                <p class="text-gray-300 text-base sm:text-lg lg:text-xl mt-6 max-w-xl mx-auto lg:mx-0 leading-relaxed font-light">
                     A revolutionary unified portal to manage milestone-based building projects, smart resource forecasting, structural safety, and secure payments.
                 </p>
                 <!-- Call-to-action buttons depending on auth state -->
@@ -76,37 +76,37 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                     <?php endif; ?>
                 </div>
                 <!-- Social proof: avatars and stats -->
-                <div class="flex items-center justify-center lg:justify-start gap-8 mt-10 text-sm text-gray-500">
+                <div class="flex items-center justify-center lg:justify-start gap-8 mt-10 text-sm text-gray-300">
                     <div class="flex items-center">
                         <div class="flex -space-x-2">
                             <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-[#0C0D10] flex items-center justify-center text-xs font-bold text-gray-300">JM</div>
                             <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-[#0C0D10] flex items-center justify-center text-xs font-bold text-white">AK</div>
                             <div class="w-8 h-8 rounded-full bg-gray-500 border-2 border-[#0C0D10] flex items-center justify-center text-xs font-bold text-white">PW</div>
                         </div>
-                        <span class="ml-3 text-gray-400"><span class="text-white font-semibold">500+</span> contractors</span>
+                        <span class="ml-3 text-gray-300"><span class="text-white font-semibold">500+</span> contractors</span>
                     </div>
-                    <div class="hidden sm:block h-8 w-px bg-gray-800"></div>
-                    <span class="text-gray-400">⭐ 4.9/5 from 200+ reviews</span>
+                    <div class="hidden sm:block h-8 w-px bg-gray-700"></div>
+                    <span class="text-gray-300">★ 4.9/5 from 200+ reviews</span>
                 </div>
             </div>
             <!-- Right column: decorative feature cards (desktop only) -->
             <div class="hidden lg:flex flex-col items-end space-y-4">
                 <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl w-72">
                     <div class="flex items-center mb-2">
-                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <div class="w-8 h-8 bg-blue-500/80 rounded-full flex items-center justify-center mr-3">
                             <span class="text-white text-xs font-bold">B</span>
                         </div>
                         <div>
-                            <div class="font-bold text-sm text-white">Blueprint & Site</div>
+                            <div class="font-bold text-sm text-white/90">Blueprint & Site</div>
                             <div class="text-xs text-gray-300">Live Preview</div>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl w-72 mr-8">
                     <div class="flex items-center">
-                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3">C</div>
+                        <div class="w-8 h-8 bg-green-500/80 rounded-full flex items-center justify-center text-white font-bold text-xs mr-3">C</div>
                         <div>
-                            <div class="font-bold text-sm text-white">Connect Ecosystem</div>
+                            <div class="font-bold text-sm text-white/90">Connect Ecosystem</div>
                             <div class="text-xs text-gray-300">Clients, PMs, Fundis</div>
                         </div>
                     </div>
@@ -248,7 +248,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
             <!-- Feature 1: Secure payments -->
             <div class="bg-white border border-gray-200 rounded-2xl p-8 text-center hover:shadow-md transition-all">
                 <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <span class="text-3xl">🔒</span>
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Safe Payment Protection</h3>
                 <p class="text-gray-500 leading-relaxed">Contracts funds are locked and released only when clients verify that construction milestones comply completely with county inspections.</p>
@@ -256,7 +256,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
             <!-- Feature 2: Cost estimation -->
             <div class="bg-white border border-gray-200 rounded-2xl p-8 text-center hover:shadow-md transition-all">
                 <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <span class="text-3xl">🤖</span>
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Instant Cost Estimates</h3>
                 <p class="text-gray-500 leading-relaxed">Instantly estimate core bill of materials (cement, quality sand, steel bars) and calculate total costs based on regional index prices.</p>
@@ -264,7 +264,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
             <!-- Feature 3: Site reports -->
             <div class="bg-white border border-gray-200 rounded-2xl p-8 text-center hover:shadow-md transition-all">
                 <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <span class="text-3xl">📱</span>
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Daily Site Reports</h3>
                 <p class="text-gray-500 leading-relaxed">Supervisors lodge real-time progress, capture pictures, log builder attendance, and flag structural risks instantly.</p>
