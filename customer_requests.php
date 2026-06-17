@@ -1,78 +1,79 @@
 <?php
-// Customer Requests page: customers submit requests, admin/manager review and propose
 $pageTitle = 'Customer Requests';
 require_once __DIR__ . '/includes/functions.php';
-requireRole(['admin', 'manager', 'customer']);
+requireRole(['super_admin', 'admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 
 $role = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
+$success = '';
 
-// Handle POST actions: create new request or update existing one
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($_POST['action'] === 'create') {
-        // Customers can submit a new project request
-        executeQuery('INSERT INTO customer_requests (customer_id, project_type, location, budget_range, description) VALUES (?, ?, ?, ?, ?)',
-            [$userId, $_POST['project_type'], $_POST['location'], $_POST['budget_range'], $_POST['description']]);
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Request submitted'];
-        redirect('customer_requests.php');
-    } elseif ($_POST['action'] === 'update') {
-        // Update request: status, proposal, budget, deadline (only non-empty values override)
-        executeQuery('UPDATE customer_requests SET status = COALESCE(NULLIF(?, ""), status), company_proposal = COALESCE(NULLIF(?, ""), company_proposal), proposed_budget = COALESCE(NULLIF(?, ""), proposed_budget), proposed_deadline = COALESCE(NULLIF(?, ""), proposed_deadline) WHERE id = ?',
-            [$_POST['status'], $_POST['company_proposal'], $_POST['proposed_budget'], $_POST['proposed_deadline'], $_POST['id']]);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_pm'])) {
+    $reqId = (int)$_POST['request_id'];
+    $pmId = (int)$_POST['pm_id'];
+    runQuery("UPDATE customer_requests SET assigned_pm_id = ?, status = 'Reviewed' WHERE id = ?", [$pmId, $reqId]);
+    runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'New request assigned to you')", [$pmId]);
+    $success = 'Project Manager assigned!';
+}
 
-        // If a customer accepts the proposal, automatically create a project
-        if (($_POST['status'] ?? '') === 'Accepted' && $role === 'customer') {
-            $reqData = runQuery('SELECT * FROM customer_requests WHERE id = ?', [$_POST['id']]);
-            if ($reqData) {
-                executeQuery('INSERT INTO projects (name, description, customer_id, status, manager_id, start_date, end_date) VALUES (?, ?, ?, "Pending", 1, CURDATE(), ?)',
-                    [$reqData[0]['project_type'] . ' - ' . $reqData[0]['location'], $reqData[0]['description'], $reqData[0]['customer_id'], $reqData[0]['proposed_deadline'] ?? '']);
-            }
-        }
-        $_SESSION['flash'] = ['type' => 'success', 'message' => 'Request updated'];
-        redirect('customer_requests.php');
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_budget'])) {
+    $reqId = (int)$_POST['request_id'];
+    runQuery("UPDATE customer_requests SET budget_amount = ?, proposed_timeline = ?, budget_status = 'pending' WHERE id = ? AND assigned_pm_id = ?",
+        [$_POST['budget_amount'], $_POST['proposed_timeline'], $reqId, $userId]);
+    $success = 'Budget sent to client!';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_budget_status'])) {
+    $reqId = (int)$_POST['request_id'];
+    $status = $_POST['budget_status'];
+    runQuery("UPDATE customer_requests SET budget_status = ?, status = ? WHERE id = ?", [$status, $status === 'accepted' ? 'Accepted' : 'Rejected', $reqId]);
+    if ($status === 'accepted') {
+        $req = runQuery("SELECT * FROM customer_requests WHERE id = ?", [$reqId])[0];
+        runQuery("INSERT INTO projects (name, description, status, project_manager_id, customer_id, start_date) VALUES (?, ?, 'Pending', ?, ?, CURDATE())",
+            [$req['project_type'] . ' - ' . $req['location'], $req['description'], $req['assigned_pm_id'], $req['customer_id']]);
     }
+    $success = 'Budget ' . $status . '!';
 }
 
-// Fetch requests: customers see only theirs; admins/managers see all
-$query = 'SELECT cr.*, u.name as customer_name, u.email as customer_email FROM customer_requests cr JOIN users u ON cr.customer_id = u.id';
-$params = [];
-if ($role === 'customer') {
-    $query .= ' WHERE cr.customer_id = ?';
-    $params[] = $userId;
+if ($role === 'project_manager') {
+    $requests = runQuery("SELECT cr.*, u.name as customer_name, c.name as company_name, pm.name as pm_name FROM customer_requests cr JOIN users u ON cr.customer_id = u.id LEFT JOIN companies c ON cr.company_id = c.id LEFT JOIN users pm ON cr.assigned_pm_id = pm.id WHERE cr.assigned_pm_id = ? ORDER BY cr.id DESC", [$userId]);
+} else {
+    $requests = runQuery("SELECT cr.*, u.name as customer_name, c.name as company_name, pm.name as pm_name FROM customer_requests cr JOIN users u ON cr.customer_id = u.id LEFT JOIN companies c ON cr.company_id = c.id LEFT JOIN users pm ON cr.assigned_pm_id = pm.id ORDER BY cr.id DESC");
 }
-$requests = runQuery($query . ' ORDER BY cr.id DESC', $params);
+
+$projectManagers = runQuery("SELECT id, name FROM users WHERE role = 'project_manager'");
 $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accepted' => 'badge-green', 'Rejected' => 'badge-red'];
-$statuses = ['Pending', 'Reviewed', 'Accepted', 'Rejected'];
-$canManage = in_array($role, ['admin', 'manager']);
 ?>
 
-<!-- Requests listing table -->
+<?php if ($success): ?>
+<div class="mb-4 p-4 bg-green-50 text-green-700 rounded-lg border border-green-200"><?= htmlspecialchars($success) ?></div>
+<?php endif; ?>
+
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
     <div class="flex justify-between items-center mb-6">
         <p class="text-sm text-gray-500"><?= count($requests) ?> requests</p>
-        <?php if ($role === 'customer'): ?>
-            <!-- Only customers see the "New Request" button -->
-            <button onclick="openModal('create-modal')" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium">+ New Request</button>
-        <?php endif; ?>
     </div>
 
-    <!-- Requests data table -->
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b border-gray-200 text-left">
+                    <th class="pb-3 font-semibold text-gray-600">Company</th>
                     <th class="pb-3 font-semibold text-gray-600">Customer</th>
-                    <th class="pb-3 font-semibold text-gray-600">Project Type</th>
+                    <th class="pb-3 font-semibold text-gray-600">Type</th>
                     <th class="pb-3 font-semibold text-gray-600">Location</th>
-                    <th class="pb-3 font-semibold text-gray-600">Budget</th>
+                    <th class="pb-3 font-semibold text-gray-600">Budget Range</th>
                     <th class="pb-3 font-semibold text-gray-600">Status</th>
+                    <th class="pb-3 font-semibold text-gray-600">Assigned PM</th>
+                    <th class="pb-3 font-semibold text-gray-600">Budget Amount</th>
+                    <th class="pb-3 font-semibold text-gray-600">Timeline</th>
                     <th class="pb-3 font-semibold text-gray-600">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php foreach ($requests as $r): ?>
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
+                    <td class="py-3"><?= htmlspecialchars($r['company_name'] ?? '—') ?></td>
                     <td class="py-3 font-medium"><?= htmlspecialchars($r['customer_name']) ?></td>
                     <td class="py-3"><?= htmlspecialchars($r['project_type']) ?></td>
                     <td class="py-3 text-gray-600"><?= htmlspecialchars($r['location']) ?></td>
@@ -80,8 +81,44 @@ $canManage = in_array($role, ['admin', 'manager']);
                     <td class="py-3">
                         <span class="badge <?= $statusColors[$r['status']] ?? 'badge-gray' ?>"><?= $r['status'] ?></span>
                     </td>
+                    <td class="py-3 text-gray-600"><?= htmlspecialchars($r['pm_name'] ?? '—') ?></td>
+                    <td class="py-3 text-gray-600"><?= $r['budget_amount'] ? number_format((float)$r['budget_amount'], 2) : '—' ?></td>
+                    <td class="py-3 text-gray-600"><?= htmlspecialchars($r['proposed_timeline'] ?? '—') ?></td>
                     <td class="py-3">
-                        <button onclick="openModal('detail-modal-<?= $r['id'] ?>')" class="text-xs px-3 py-1 rounded border border-gray-300 hover:bg-gray-100">View</button>
+                        <?php if (in_array($role, ['admin', 'super_admin'])): ?>
+                            <?php if (!$r['assigned_pm_id']): ?>
+                            <form method="POST" class="flex items-center space-x-1">
+                                <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                                <select name="pm_id" required class="text-xs px-2 py-1 border border-gray-300 rounded">
+                                    <option value="">PM</option>
+                                    <?php foreach ($projectManagers as $pm): ?>
+                                    <option value="<?= $pm['id'] ?>"><?= htmlspecialchars($pm['name']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <button type="submit" name="assign_pm" class="text-xs px-2 py-1 bg-slate-900 text-white rounded hover:bg-slate-800">Go</button>
+                            </form>
+                            <?php elseif ($r['budget_status'] === 'pending'): ?>
+                            <div class="flex space-x-1">
+                                <form method="POST">
+                                    <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                                    <input type="hidden" name="budget_status" value="accepted">
+                                    <button type="submit" name="update_budget_status" class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Accept</button>
+                                </form>
+                                <form method="POST">
+                                    <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                                    <input type="hidden" name="budget_status" value="rejected">
+                                    <button type="submit" name="update_budget_status" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
+                                </form>
+                            </div>
+                            <?php endif; ?>
+                        <?php elseif ($role === 'project_manager' && $r['assigned_pm_id'] == $userId && !$r['budget_amount']): ?>
+                            <form method="POST" class="flex flex-col space-y-1">
+                                <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                                <input type="text" name="budget_amount" placeholder="Amount" required class="text-xs px-2 py-1 border border-gray-300 rounded w-24">
+                                <input type="text" name="proposed_timeline" placeholder="Timeline" required class="text-xs px-2 py-1 border border-gray-300 rounded w-24">
+                                <button type="submit" name="submit_budget" class="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Submit Budget</button>
+                            </form>
+                        <?php endif; ?>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -89,130 +126,5 @@ $canManage = in_array($role, ['admin', 'manager']);
         </table>
     </div>
 </div>
-
-<!-- Modal: Create New Request (customers only) -->
-<div id="create-modal" class="modal fixed inset-0 z-50 hidden">
-    <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-modal')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-20 p-6 z-10">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">New Request</h3>
-        <form method="POST">
-            <input type="hidden" name="action" value="create">
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Type</label>
-                    <input type="text" name="project_type" required placeholder="e.g. Residential House" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input type="text" name="location" required placeholder="e.g. Dar es Salaam" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
-                    <input type="text" name="budget_range" placeholder="e.g. 50M - 100M TZS" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"></textarea>
-                </div>
-            </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button type="button" onclick="closeModal('create-modal')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Submit</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal per request: View Details & Update -->
-<?php foreach ($requests as $r): ?>
-<div id="detail-modal-<?= $r['id'] ?>" class="modal fixed inset-0 z-50 hidden">
-    <div class="fixed inset-0 bg-black/50" onclick="closeModal('detail-modal-<?= $r['id'] ?>')"></div>
-    <div class="relative bg-white rounded-xl shadow-xl max-w-lg w-full mx-4 mt-12 p-6 z-10 max-h-[80vh] overflow-y-auto">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">Request Details</h3>
-
-        <!-- Read-only summary of the request -->
-        <div class="space-y-3 mb-6">
-            <div><span class="text-sm text-gray-500">Customer:</span> <span class="font-medium"><?= htmlspecialchars($r['customer_name']) ?></span></div>
-            <div><span class="text-sm text-gray-500">Project Type:</span> <span class="font-medium"><?= htmlspecialchars($r['project_type']) ?></span></div>
-            <div><span class="text-sm text-gray-500">Location:</span> <?= htmlspecialchars($r['location']) ?></div>
-            <div><span class="text-sm text-gray-500">Budget:</span> <?= htmlspecialchars($r['budget_range'] ?? '—') ?></div>
-            <div><span class="text-sm text-gray-500">Description:</span>
-                <p class="text-gray-700 mt-1"><?= htmlspecialchars($r['description'] ?? '—') ?></p>
-            </div>
-            <?php if ($r['company_proposal']): ?>
-                <div><span class="text-sm text-gray-500">Company Proposal:</span>
-                    <p class="text-gray-700 mt-1"><?= htmlspecialchars($r['company_proposal']) ?></p>
-                </div>
-            <?php endif; ?>
-            <?php if ($r['proposed_budget']): ?>
-                <div><span class="text-sm text-gray-500">Proposed Budget:</span> <?= htmlspecialchars($r['proposed_budget']) ?></div>
-            <?php endif; ?>
-            <?php if ($r['proposed_deadline']): ?>
-                <div><span class="text-sm text-gray-500">Proposed Deadline:</span> <?= htmlspecialchars($r['proposed_deadline']) ?></div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Update form: admin/manager can set status, proposal, budget, deadline -->
-        <form method="POST" class="border-t border-gray-200 pt-4">
-            <input type="hidden" name="action" value="update">
-            <input type="hidden" name="id" value="<?= $r['id'] ?>">
-
-            <?php if ($canManage): ?>
-                <!-- Admin/Manager fields: status change, company proposal, budget, deadline -->
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                            <option value="">Keep current</option>
-                            <?php foreach ($statuses as $s): ?>
-                                <option value="<?= $s ?>" <?= $s === $r['status'] ? 'selected' : '' ?>><?= $s ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Company Proposal</label>
-                        <textarea name="company_proposal" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"><?= htmlspecialchars($r['company_proposal'] ?? '') ?></textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Proposed Budget</label>
-                            <input type="text" name="proposed_budget" value="<?= htmlspecialchars($r['proposed_budget'] ?? '') ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Proposed Deadline</label>
-                            <input type="date" name="proposed_deadline" value="<?= $r['proposed_deadline'] ?? '' ?>" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-
-            <!-- Customer decision field: accept or reject the company proposal -->
-            <?php if ($role === 'customer' && $r['status'] !== 'Accepted' && $r['status'] !== 'Rejected'): ?>
-                <div class="mt-3">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Your decision</label>
-                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                        <option value="">No change</option>
-                        <option value="Accepted">✅ Accept Proposal</option>
-                        <option value="Rejected">❌ Reject</option>
-                    </select>
-                </div>
-            <?php endif; ?>
-
-            <div class="flex justify-end space-x-3 mt-4">
-                <button type="button" onclick="closeModal('detail-modal-<?= $r['id'] ?>')" class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg">Close</button>
-                <?php if ($canManage || $role === 'customer'): ?>
-                    <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800">Update</button>
-                <?php endif; ?>
-            </div>
-        </form>
-    </div>
-</div>
-<?php endforeach; ?>
-
-<!-- Modal toggle helper functions -->
-<script>
-function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
