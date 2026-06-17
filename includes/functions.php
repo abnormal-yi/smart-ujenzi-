@@ -51,7 +51,7 @@ function requireRole(array $roles): void {
     }
 }
 
-// Convenience guard that restricts access to admin and manager roles only
+// Convenience guard that restricts access to admin, super_admin, and project_manager roles
 function requireAdminManager(): void {
-    requireRole(['admin', 'manager']);
+    requireRole(['super_admin', 'admin', 'project_manager']);
 }
