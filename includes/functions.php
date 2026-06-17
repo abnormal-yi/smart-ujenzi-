@@ -55,3 +55,8 @@ function requireRole(array $roles): void {
 function requireAdminManager(): void {
     requireRole(['super_admin', 'admin', 'project_manager']);
 }
+
+// Alias for requireAuth() used in templates
+function requireLogin(): void {
+    requireAuth();
+}

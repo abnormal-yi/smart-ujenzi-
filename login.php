@@ -134,16 +134,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Don't have an account?
                     <a href="register.php" class="text-yellow-500 hover:underline font-medium">Register</a>
                 </p>
+                <?php
+                $demoAccounts = [
+                    ['super@example.com', 'admin123', 'Super Admin'],
+                    ['zainab@example.com', 'manager123', 'Admin'],
+                    ['steve@example.com', 'manager123', 'Project Manager'],
+                    ['teleza@example.com', 'manager123', 'Project Manager'],
+                    ['mteja@example.com', 'manager123', 'Client'],
+                    ['ali@example.com', 'manager123', 'Fundi'],
+                    ['david@example.com', 'manager123', 'Fundi'],
+                ];
+                ?>
                 <div class="text-center mt-4">
                     <p class="text-gray-400 text-sm leading-relaxed">
                         Demo Accounts:<br>
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        Demo Accounts:<br>
-                        <span class="text-gray-300">admin@example.com / admin123 (Admin)</span><br>
-                        <span class="text-gray-300">steve@example.com / pass123 (Manager)</span><br>
-                        <span class="text-gray-300">teleza@example.com / pass123 (Supervisor)</span><br>
-                        <span class="text-gray-300">constructor@example.com / pass123 (Constructor)</span><br>
-                        <span class="text-gray-300">mteja@example.com / pass123 (Customer)</span>
+                        <?php foreach ($demoAccounts as $acct): ?>
+                        <span class="text-gray-300"><?= $acct[0] ?> / <?= $acct[1] ?> (<?= $acct[2] ?>)</span><br>
+                        <?php endforeach; ?>
                     </p>
                 </div>
             </form>
