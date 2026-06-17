@@ -65,11 +65,13 @@ try {
 
     echo "[OK] Tables created and seed data inserted\n";
     echo "\n--- Demo Accounts ---\n";
-    echo "admin@example.com / admin123 (Admin)\n";
-    echo "steve@example.com / pass123 (Manager)\n";
-    echo "teleza@example.com / pass123 (Supervisor)\n";
-    echo "constructor@example.com / pass123 (Constructor)\n";
-    echo "mteja@example.com / pass123 (Customer)\n";
+    echo "super@example.com / admin123 (Super Admin)\n";
+    echo "zainab@example.com / manager123 (Admin)\n";
+    echo "steve@example.com / manager123 (Project Manager)\n";
+    echo "teleza@example.com / manager123 (Project Manager)\n";
+    echo "mteja@example.com / manager123 (Client)\n";
+    echo "ali@example.com / manager123 (Fundi)\n";
+    echo "david@example.com / manager123 (Fundi)\n";
     echo "\n--- Start Server ---\n";
     echo "php start.sh\n";
     echo "  or: php -d extension=pdo_mysql -S localhost:8000\n\n";
