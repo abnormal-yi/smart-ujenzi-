@@ -35,7 +35,7 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,              -- User's full name
     email VARCHAR(255) UNIQUE NOT NULL,       -- Login email (unique constraint)
     password VARCHAR(255) NOT NULL,           -- bcrypt hashed password
-    role VARCHAR(50) NOT NULL                 -- Role: admin, manager, supervisor, constructor, customer
+    role VARCHAR(50) NOT NULL                 -- Role: super_admin, admin, project_manager, fundi, client
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
@@ -166,8 +166,6 @@ CREATE TABLE customer_requests (
     budget_range VARCHAR(255),
     description TEXT,
     company_proposal TEXT,
-    proposed_budget VARCHAR(255),
-    proposed_deadline VARCHAR(255),
     budget_amount DECIMAL(12,2),
     budget_status VARCHAR(50) DEFAULT 'pending',
     proposed_timeline VARCHAR(255),
