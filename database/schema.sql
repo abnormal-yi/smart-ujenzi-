@@ -217,12 +217,12 @@ CREATE TABLE project_media (
 -- Password: admin123 (bcrypt hash)
 INSERT INTO users (id, name, email, password, role) VALUES
 (1, 'Super Admin', 'super@example.com', '$2y$12$h5KvvZh1CvZdEWV5nfKBv.dsndWykdBbc8xyWkvL1JpfsmgzN8is6', 'super_admin'),
-(2, 'Stephen Massawe', 'steve@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'project_manager'),
-(3, 'Teleza Mkomwa', 'teleza@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'project_manager'),
-(4, 'Ali Fundi', 'ali@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'fundi'),
-(5, 'Zainab Admin', 'zainab@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'admin'),
-(6, 'John Mteja', 'mteja@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'client'),
-(7, 'Daud Fundi', 'david@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'fundi');
+(2, 'Stephen Massawe', 'steve@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'project_manager'),
+(3, 'Teleza Mkomwa', 'teleza@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'project_manager'),
+(4, 'Ali Fundi', 'ali@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'fundi'),
+(5, 'Zainab Admin', 'zainab@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'admin'),
+(6, 'John Mteja', 'mteja@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'client'),
+(7, 'Daud Fundi', 'david@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'fundi');
 
 -- NCA verified contractor companies (displayed on landing page)
 INSERT INTO companies (name, tagline, location, city, country, rating, verified, years_experience, projects_completed, licenses, engineers, logo_initials, company_id) VALUES
