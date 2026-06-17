@@ -28,7 +28,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- ====================
 -- Table: users
--- Stores system users with role-based access (admin, manager, supervisor, constructor, customer)
+-- Stores system users with role-based access (super_admin, admin, project_manager, fundi, client)
 -- ====================
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -44,14 +44,14 @@ CREATE TABLE users (
 -- ====================
 CREATE TABLE projects (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,              -- Project name
-    description TEXT,                         -- Project description
-    status VARCHAR(50) DEFAULT 'Pending',    -- Status: Pending, Ongoing, In Progress, Completed, On Hold
-    manager_id INT,                          -- Foreign key to users(id) - the project manager
-    customer_id INT,                         -- Foreign key to users(id) - the customer who owns this project
-    start_date DATE,                         -- Project start date
-    end_date DATE,                           -- Project end date
-    FOREIGN KEY(manager_id) REFERENCES users(id)
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Pending',
+    project_manager_id INT,
+    customer_id INT,
+    start_date DATE,
+    end_date DATE,
+    FOREIGN KEY(project_manager_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
@@ -60,14 +60,14 @@ CREATE TABLE projects (
 -- ====================
 CREATE TABLE tasks (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    project_id INT NOT NULL,                 -- Foreign key to projects(id)
-    name VARCHAR(255) NOT NULL,              -- Task name
-    description TEXT,                         -- Task description
-    status VARCHAR(50) DEFAULT 'Not Started',-- Status: Not Started, In Progress, Completed, On Hold
-    supervisor_id INT,                       -- Foreign key to users(id) - the assigned supervisor
-    deadline DATE,                           -- Task deadline date
+    project_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'Not Started',
+    fundi_id INT,
+    deadline DATE,
     FOREIGN KEY(project_id) REFERENCES projects(id),
-    FOREIGN KEY(supervisor_id) REFERENCES users(id)
+    FOREIGN KEY(fundi_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
@@ -159,16 +159,23 @@ CREATE TABLE companies (
 -- ====================
 CREATE TABLE customer_requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_id INT NOT NULL,                -- Foreign key to users(id) - the customer
-    project_type VARCHAR(255) NOT NULL,      -- Type of project requested
-    location VARCHAR(255) NOT NULL,          -- Desired project location
-    budget_range VARCHAR(255),               -- Customer's budget range
-    description TEXT,                         -- Detailed project description
-    company_proposal TEXT,                    -- Admin/manager's response proposal
-    proposed_budget VARCHAR(255),            -- Company's proposed budget
-    proposed_deadline VARCHAR(255),          -- Company's proposed deadline
-    status VARCHAR(50) DEFAULT 'Pending',   -- Status: Pending, Reviewed, Accepted, Rejected
-    FOREIGN KEY(customer_id) REFERENCES users(id)
+    customer_id INT NOT NULL,
+    company_id INT,
+    project_type VARCHAR(255) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    budget_range VARCHAR(255),
+    description TEXT,
+    company_proposal TEXT,
+    proposed_budget VARCHAR(255),
+    proposed_deadline VARCHAR(255),
+    budget_amount DECIMAL(12,2),
+    budget_status VARCHAR(50) DEFAULT 'pending',
+    proposed_timeline VARCHAR(255),
+    assigned_pm_id INT,
+    status VARCHAR(50) DEFAULT 'Pending',
+    FOREIGN KEY(customer_id) REFERENCES users(id),
+    FOREIGN KEY(company_id) REFERENCES companies(id),
+    FOREIGN KEY(assigned_pm_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
@@ -211,13 +218,13 @@ CREATE TABLE project_media (
 -- Demo users with pre-hashed bcrypt passwords
 -- Password: admin123 (bcrypt hash)
 INSERT INTO users (id, name, email, password, role) VALUES
-(1, 'Admin', 'admin@example.com', '$2y$12$h5KvvZh1CvZdEWV5nfKBv.dsndWykdBbc8xyWkvL1JpfsmgzN8is6', 'admin'),
-(2, 'Stephen Massawe', 'steve@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'manager'),
-(3, 'Teleza Mkomwa', 'teleza@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'supervisor'),
-(4, 'Ali Fundi', 'ali@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'supervisor'),
-(5, 'Zainab Contractor', 'zainab@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'manager'),
-(6, 'John Mteja', 'mteja@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'customer'),
-(7, 'Daud Fundi', 'constructor@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'constructor');
+(1, 'Super Admin', 'super@example.com', '$2y$12$h5KvvZh1CvZdEWV5nfKBv.dsndWykdBbc8xyWkvL1JpfsmgzN8is6', 'super_admin'),
+(2, 'Stephen Massawe', 'steve@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'project_manager'),
+(3, 'Teleza Mkomwa', 'teleza@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'project_manager'),
+(4, 'Ali Fundi', 'ali@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'fundi'),
+(5, 'Zainab Admin', 'zainab@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'admin'),
+(6, 'John Mteja', 'mteja@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'client'),
+(7, 'Daud Fundi', 'david@example.com', '$2y$12$DFciiduJ4J/O7ScHIqIvx.tRPV3QsbfLk3AlHH.qc2zG9kSgFGsMO', 'fundi');
 
 -- NCA verified contractor companies (displayed on landing page)
 INSERT INTO companies (name, tagline, location, city, country, rating, verified, years_experience, projects_completed, licenses, engineers, logo_initials, company_id) VALUES
@@ -226,23 +233,23 @@ INSERT INTO companies (name, tagline, location, city, country, rating, verified,
 ('Pamoja Modern Designs', 'Building For the Community', 'Sinza, Dar es Salaam', 'dar', 'Tanzania', 4.2, 0, 4, 4, 'NCA-Class-4-Pending-231', 2, 'PA', 'COMP_3');
 
 -- Sample customer request
-INSERT INTO customer_requests (customer_id, project_type, location, budget_range, description, status) VALUES
-(6, 'Residential House', 'Dar es Salaam, Masaki', '50M - 100M TZS', 'Looking for a reliable company to build a 4-bedroom house. Have plot already.', 'Pending');
+INSERT INTO customer_requests (customer_id, company_id, project_type, location, budget_range, description, status) VALUES
+(6, 1, 'Residential House', 'Dar es Salaam, Masaki', '50M - 100M TZS', 'Looking for a reliable company to build a 4-bedroom house. Have plot already.', 'Pending');
 
 -- Sample projects with different statuses
-INSERT INTO projects (id, name, description, status, manager_id, customer_id, start_date, end_date) VALUES
+INSERT INTO projects (id, name, description, status, project_manager_id, customer_id, start_date, end_date) VALUES
 (1, 'IAA New Library', 'Construction of a modern library', 'Ongoing', 2, 6, '2025-01-01', '2026-05-01'),
 (2, 'Hostel Block B', 'Expansion of students hostel', 'Pending', 2, NULL, '2025-08-01', '2026-12-01'),
-(3, 'City Mall Extension', 'Adding a new wing to City Mall', 'In Progress', 5, NULL, '2025-10-10', '2027-02-15'),
+(3, 'City Mall Extension', 'Adding a new wing to City Mall', 'In Progress', 3, NULL, '2025-10-10', '2027-02-15'),
 (4, 'Mwanza Hospital Block', 'New maternity ward', 'Completed', 2, 6, '2023-01-05', '2024-12-20');
 
 -- Tasks assigned to various projects and supervisors
-INSERT INTO tasks (project_id, name, description, status, supervisor_id, deadline) VALUES
-(1, 'Foundation Laying', 'Excavation and foundation laying', 'Completed', 3, '2025-02-15'),
-(1, 'Brickwork Phase 1', 'Ground floor brickwork', 'In Progress', 3, '2025-06-30'),
+INSERT INTO tasks (project_id, name, description, status, fundi_id, deadline) VALUES
+(1, 'Foundation Laying', 'Excavation and foundation laying', 'Completed', 4, '2025-02-15'),
+(1, 'Brickwork Phase 1', 'Ground floor brickwork', 'In Progress', 7, '2025-06-30'),
 (2, 'Site Clearance', 'Clearing the bush and trees', 'Completed', 4, '2025-08-15'),
-(2, 'Foundation Excavation', 'Digging trenches', 'Not Started', 4, '2025-09-01'),
-(3, 'Structural Framing', 'Putting up steel columns', 'In Progress', 3, '2026-01-20');
+(2, 'Foundation Excavation', 'Digging trenches', 'Not Started', 7, '2025-09-01'),
+(3, 'Structural Framing', 'Putting up steel columns', 'In Progress', 7, '2026-01-20');
 
 -- Available labor and equipment resources
 INSERT INTO resources (id, type, name, details) VALUES
