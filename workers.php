@@ -2,7 +2,7 @@
 // Workers (Mafundi) & Equipment management page: add resources and assign to projects
 $pageTitle = 'Mafundi & Equipment';
 require_once __DIR__ . '/includes/functions.php';
-requireRole(['admin', 'manager', 'supervisor']);
+requireRole(['admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 
 // Handle resource creation (labor or equipment)

@@ -282,7 +282,7 @@ if ($role === 'super_admin' || $role === 'admin'):
                 <tbody>
                     <?php foreach ($myTasks as $t): ?>
                     <tr class="border-b border-gray-50">
-                        <td class="py-3 text-gray-800 font-medium"><?= htmlspecialchars($t['title']) ?></td>
+                        <td class="py-3 text-gray-800 font-medium"><?= htmlspecialchars($t['name'] ?? '') ?></td>
                         <td class="py-3 text-gray-600"><?= htmlspecialchars($t['project_name']) ?></td>
                         <td class="py-3">
                             <span class="px-2 py-1 text-xs rounded-full <?= $t['status'] === 'Completed' ? 'bg-green-100 text-green-700' : ($t['status'] === 'In Progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700') ?>"><?= $t['status'] ?></span>

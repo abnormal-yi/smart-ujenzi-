@@ -2,7 +2,7 @@
 // Materials management page: add materials and adjust stock quantities
 $pageTitle = 'Materials';
 require_once __DIR__ . '/includes/functions.php';
-requireRole(['admin', 'manager', 'supervisor']);
+requireRole(['admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 
 // Handle POST actions: add new material or update stock level
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mat = runQuery('SELECT * FROM materials WHERE id = ?', [$_POST['id']]);
         // Send notification if stock has fallen to or below the low stock threshold
         if ($mat && $mat[0]['quantity'] <= $mat[0]['low_stock_threshold']) {
-            executeQuery('INSERT INTO notifications (user_id, message, is_read) SELECT id, ?, 0 FROM users WHERE role IN ("admin", "manager")',
+            executeQuery('INSERT INTO notifications (user_id, message, is_read) SELECT id, ?, 0 FROM users WHERE role IN ("admin", "project_manager")',
                 ["Low stock alert: {$mat[0]['name']} (Qty: {$mat[0]['quantity']})"]);
         }
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Stock updated'];

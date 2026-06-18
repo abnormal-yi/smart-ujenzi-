@@ -2,7 +2,7 @@
 // Discussions (messages) page: per-project threaded chat
 $pageTitle = 'Discussions';
 require_once __DIR__ . '/includes/functions.php';
-requireRole(['admin', 'manager', 'supervisor']);
+requireRole(['admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 
 $projects = runQuery('SELECT id, name FROM projects');

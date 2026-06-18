@@ -2,11 +2,11 @@
 // Reports page: project/task overview, overdue tasks, and stock reports
 $pageTitle = 'Reports';
 require_once __DIR__ . '/includes/functions.php';
-requireRole(['admin', 'manager']);
+requireRole(['admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 
 // Fetch all data needed for reports
-$projects = runQuery('SELECT p.*, u.name as manager_name FROM projects p LEFT JOIN users u ON p.manager_id = u.id');
+$projects = runQuery('SELECT p.*, u.name as manager_name FROM projects p LEFT JOIN users u ON p.project_manager_id = u.id');
 $tasks = runQuery('SELECT t.*, p.name as project_name FROM tasks t LEFT JOIN projects p ON t.project_id = p.id');
 $materials = runQuery('SELECT * FROM materials');
 $resources = runQuery('SELECT * FROM resources');
