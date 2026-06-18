@@ -171,6 +171,7 @@ CREATE TABLE customer_requests (
     proposed_timeline VARCHAR(255),
     assigned_pm_id INT,
     status VARCHAR(50) DEFAULT 'Pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(customer_id) REFERENCES users(id),
     FOREIGN KEY(company_id) REFERENCES companies(id),
     FOREIGN KEY(assigned_pm_id) REFERENCES users(id)

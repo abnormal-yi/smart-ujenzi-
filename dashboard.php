@@ -120,7 +120,7 @@ if ($role === 'super_admin' || $role === 'admin'):
                             <td class="py-2">
                                 <span class="px-2 py-1 text-xs rounded-full <?= $req['status'] === 'Approved' ? 'bg-green-100 text-green-700' : ($req['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700') ?>"><?= $req['status'] ?></span>
                             </td>
-                            <td class="py-2 text-gray-500"><?= date('M j, Y', strtotime($req['created_at'])) ?></td>
+                            <td class="py-2 text-gray-500"><?= date('M j, Y', strtotime($req['created_at'] ?? '')) ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -383,7 +383,7 @@ if ($role === 'super_admin' || $role === 'admin'):
                         <td class="py-3">
                             <span class="px-2 py-1 text-xs rounded-full <?= $req['status'] === 'Approved' ? 'bg-green-100 text-green-700' : ($req['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700') ?>"><?= $req['status'] ?></span>
                         </td>
-                        <td class="py-3 text-gray-500"><?= date('M j, Y', strtotime($req['created_at'])) ?></td>
+                        <td class="py-3 text-gray-500"><?= date('M j, Y', strtotime($req['created_at'] ?? '')) ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
