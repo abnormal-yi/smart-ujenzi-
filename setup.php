@@ -1,30 +1,46 @@
 <?php
 // SmartUjenzi - Database Setup Script
-// Usage: php -d extension=pdo_mysql setup.php
-//   To re-run after already set up: php setup.php force=1
+// CLI: php -d extension=pdo_mysql setup.php [force=1]
+// Web: http://site/setup.php?key=admin123
+// Web force: http://site/setup.php?key=admin123&force=1
 
-// Only allow CLI execution for security
-if (php_sapi_name() !== 'cli') {
-    die('Setup can only be run from command line. Usage: php setup.php');
+$isCLI = php_sapi_name() === 'cli';
+$allowedKey = 'admin123';
+
+if (!$isCLI) {
+    require_once __DIR__ . '/includes/config.php';
 }
 
-$force = isset($argv[1]) && $argv[1] === 'force=1';
-
-$socket = getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock';
-$dbname = getenv('DB_NAME') ?: 'test_smart_ujenzi';
-
-echo "=== SmartUjenzi Database Setup ===\n\n";
+if ($isCLI) {
+    $force = isset($argv[1]) && $argv[1] === 'force=1';
+    $socket = getenv('DB_SOCKET') ?: '/var/run/mysqld/mysqld.sock';
+    $dbname = getenv('DB_NAME') ?: 'test_smart_ujenzi';
+    echo "=== SmartUjenzi Database Setup ===\n\n";
+    out(null, true);
+} else {
+    if (empty($_GET['key']) || $_GET['key'] !== $allowedKey) {
+        header('HTTP/1.0 403 Forbidden');
+        echo '<h1>403 Forbidden</h1><p>Add <code>?key=admin123</code> to the URL.</p>';
+        exit;
+    }
+    $force = isset($_GET['force']);
+    $dbname = DB_NAME;
+    out('<h2>SmartUjenzi Database Setup</h2>', false);
+}
 
 try {
-    $dsn = $socket
-        ? "mysql:unix_socket=$socket;charset=utf8mb4"
-        : "mysql:host=localhost;charset=utf8mb4";
+    if ($isCLI) {
+        $dsn = $socket
+            ? "mysql:unix_socket=$socket;charset=utf8mb4"
+            : "mysql:host=localhost;charset=utf8mb4";
+        $pdo = new PDO($dsn, '', '', [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    } else {
+        $dsn = DB_SOCKET && DB_USER === ''
+            ? "mysql:unix_socket=" . DB_SOCKET . ";charset=utf8mb4"
+            : "mysql:host=" . DB_HOST . ";charset=utf8mb4";
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    }
 
-    $pdo = new PDO($dsn, '', '', [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    ]);
-
-    // Check if DB already has tables
     $exists = $pdo->query("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '$dbname'")->fetch();
     $hasTables = false;
     if ($exists) {
@@ -34,18 +50,18 @@ try {
     }
 
     if ($hasTables && !$force) {
-        echo "[OK] Database '$dbname' already set up with " . count($tables) . " tables.\n";
-        echo "      To re-run (will wipe data): php setup.php force=1\n\n";
+        out("[OK] Database '$dbname' already set up with " . count($tables) . " tables.\n" . ($isCLI ? "      To re-run (will wipe data): php setup.php force=1\n" : "<br><a href='?key=$allowedKey&amp;force=1'>Force re-run (wipe data)</a>"), $isCLI);
+        if (!$isCLI) echo '<p><a href="login.php">Go to Login →</a></p>';
         exit(0);
     }
 
     if ($hasTables && $force) {
-        echo "[WARN] Force re-run: dropping all tables first...\n";
+        out("[WARN] Force re-run: dropping all tables...", $isCLI);
         $pdo->exec("DROP DATABASE `$dbname`");
     }
 
     $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    echo "[OK] Database '$dbname' created or already exists\n";
+    out("[OK] Database '$dbname' created or already exists", $isCLI);
 
     $pdo->exec("USE `$dbname`");
 
@@ -54,29 +70,38 @@ try {
     $sql = preg_replace('/^USE .*?;\s*/im', '', $sql);
     $sql = preg_replace('/^-- .*$/m', '', $sql);
 
-    $statements = array_filter(
-        array_map('trim', explode(';', $sql)),
-        fn($s) => !empty($s)
-    );
-
+    $statements = array_filter(array_map('trim', explode(';', $sql)), fn($s) => $s !== '');
     foreach ($statements as $stmt) {
         $pdo->exec($stmt);
     }
 
-    echo "[OK] Tables created and seed data inserted\n";
-    echo "\n--- Demo Accounts ---\n";
-    echo "super@example.com / admin123 (Super Admin)\n";
-    echo "zainab@example.com / manager123 (Admin)\n";
-    echo "steve@example.com / manager123 (Project Manager)\n";
-    echo "teleza@example.com / manager123 (Project Manager)\n";
-    echo "mteja@example.com / manager123 (Client)\n";
-    echo "ali@example.com / manager123 (Fundi)\n";
-    echo "david@example.com / manager123 (Fundi)\n";
-    echo "\n--- Start Server ---\n";
-    echo "php start.sh\n";
-    echo "  or: php -d extension=pdo_mysql -S localhost:8000\n\n";
+    out("[OK] Tables created and seed data inserted", $isCLI);
+    out("", $isCLI);
+    out("--- Demo Accounts ---", $isCLI);
+    out("super@example.com / admin123 (Super Admin)", $isCLI);
+    out("zainab@example.com / manager123 (Admin)", $isCLI);
+    out("steve@example.com / manager123 (Project Manager)", $isCLI);
+    out("teleza@example.com / manager123 (Project Manager)", $isCLI);
+    out("mteja@example.com / manager123 (Client)", $isCLI);
+    out("ali@example.com / manager123 (Fundi)", $isCLI);
+    out("david@example.com / manager123 (Fundi)", $isCLI);
 
-} catch (PDOException $e) {
-    echo "[ERROR] " . $e->getMessage() . "\n";
+    if ($isCLI) {
+        echo "\n--- Start Server ---\nphp start.sh\n  or: php -d extension=pdo_mysql -S localhost:8000\n\n";
+    } else {
+        echo '<p><a href="login.php" class="btn">Go to Login</a></p>';
+    }
+
+} catch (Exception $e) {
+    out("[ERROR] " . $e->getMessage(), $isCLI);
+    if (!$isCLI) echo '<p>Check your <code>config.local.php</code> database settings.</p>';
     exit(1);
+}
+
+function out($msg, $isCLI) {
+    if ($isCLI) {
+        echo $msg . "\n";
+    } else {
+        echo nl2br(htmlspecialchars($msg)) . "\n";
+    }
 }
