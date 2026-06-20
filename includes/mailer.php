@@ -17,6 +17,8 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $port = defined('SMTP_PORT') ? SMTP_PORT : 587;
         $mail->SMTPSecure = $port == 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = $port;
+        $mail->Timeout    = 5;
+        $mail->SMTPKeepAlive = false;
 
         $from     = defined('SMTP_FROM') ? SMTP_FROM : 'noreply@smartujenzi.com';
         $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'SmartUjenzi';

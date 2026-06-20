@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$user['id'], $code]);
 
             require_once __DIR__ . '/includes/mailer.php';
-            sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
+            $sent = sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
                 "<h2>OTP Verification</h2>
                  <p>Hello <strong>" . htmlspecialchars($user['name']) . "</strong>,</p>
                  <p>Your verification code is:</p>
@@ -38,11 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  <p>This code expires in 5 minutes.</p>
                  <p>If you did not attempt to log in, please ignore this email.</p>");
 
-            $_SESSION['otp_user_id'] = $user['id'];
-            $_SESSION['otp_user_name'] = $user['name'];
-            $_SESSION['otp_user_email'] = $user['email'];
-            $_SESSION['otp_role'] = $user['role'];
-            redirect('otp-verify.php');
+            if (!$sent) {
+                $error = 'Could not send OTP email. Your SMTP settings may be incorrect. Please try again or contact support.';
+            } else {
+                $_SESSION['otp_user_id'] = $user['id'];
+                $_SESSION['otp_user_name'] = $user['name'];
+                $_SESSION['otp_user_email'] = $user['email'];
+                $_SESSION['otp_role'] = $user['role'];
+                redirect('otp-verify.php');
+            }
         }
     } else {
         $error = 'Invalid email or password';
