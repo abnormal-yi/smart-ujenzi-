@@ -7,10 +7,10 @@ require_once __DIR__ . '/../vendor/phpmailer/SMTP.php';
 require_once __DIR__ . '/../vendor/phpmailer/Exception.php';
 
 function sendEmail(string $to, string $subject, string $body): bool {
-    // Try SMTP first (5s timeout), fall back to PHP mail()
     $from     = defined('SMTP_FROM') ? SMTP_FROM : 'noreply@smartujenzi.com';
     $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'SmartUjenzi';
 
+    // 1: Try SMTP
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
@@ -23,22 +23,35 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $mail->Port       = $port;
         $mail->Timeout    = 5;
         $mail->SMTPKeepAlive = false;
-
         $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
         $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body    = $body;
-
         $mail->send();
         return true;
     } catch (Exception $e) {
-        error_log("SMTP failed, falling back to mail(): " . $mail->ErrorInfo);
+        error_log("MAIL: SMTP failed: " . $mail->ErrorInfo);
     }
 
-    // Fallback: PHP mail() function (works on all shared hosting)
+    // 2: Try sendmail binary directly
+    $mail3 = new PHPMailer(true);
     try {
-        $mail2 = new PHPMailer(true);
+        $mail3->isSendmail();
+        $mail3->setFrom($from, $fromName);
+        $mail3->addAddress($to);
+        $mail3->isHTML(true);
+        $mail3->Subject = $subject;
+        $mail3->Body    = $body;
+        $mail3->send();
+        return true;
+    } catch (Exception $e) {
+        error_log("MAIL: sendmail failed: " . $mail3->ErrorInfo);
+    }
+
+    // 3: Try PHP mail() via PHPMailer
+    $mail2 = new PHPMailer(true);
+    try {
         $mail2->isMail();
         $mail2->setFrom($from, $fromName);
         $mail2->addAddress($to);
@@ -48,7 +61,21 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $mail2->send();
         return true;
     } catch (Exception $e) {
-        error_log("mail() fallback also failed: " . $mail2->ErrorInfo);
-        return false;
+        error_log("MAIL: mail() failed: " . $mail2->ErrorInfo);
     }
+
+    // 4: Try direct mail() as last resort
+    try {
+        ini_set('sendmail_from', $from);
+        $headers = "From: $fromName <$from>\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $result = mail($to, $subject, $body, $headers);
+        if ($result) return true;
+        error_log("MAIL: direct mail() returned false");
+    } catch (\Throwable $e) {
+        error_log("MAIL: direct mail() exception: " . $e->getMessage());
+    }
+
+    return false;
 }
