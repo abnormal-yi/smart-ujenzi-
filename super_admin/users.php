@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
 }
 
 $users = runQuery("SELECT * FROM users ORDER BY FIELD(role, 'super_admin', 'admin', 'project_manager', 'fundi', 'client'), name");
-$allowedRoles = ['admin', 'project_manager', 'fundi'];
+$allowedRoles = ['admin', 'project_manager', 'fundi', 'client'];
 
 $roleColors = [
     'super_admin' => 'bg-red-100 text-red-700',
