@@ -35,7 +35,8 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,              -- User's full name
     email VARCHAR(255) UNIQUE NOT NULL,       -- Login email (unique constraint)
     password VARCHAR(255) NOT NULL,           -- bcrypt hashed password
-    role VARCHAR(50) NOT NULL                 -- Role: super_admin, admin, project_manager, fundi, client
+    role VARCHAR(50) NOT NULL,                -- Role: super_admin, admin, project_manager, fundi, client
+    location VARCHAR(255) DEFAULT ''           -- Region, District, Ward selected during registration
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
@@ -224,6 +225,17 @@ CREATE TABLE districts (
     region_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     FOREIGN KEY(region_id) REFERENCES regions(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: wards
+-- Tanzania wards/mitaa within districts
+-- ====================
+CREATE TABLE wards (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    district_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    FOREIGN KEY(district_id) REFERENCES districts(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================

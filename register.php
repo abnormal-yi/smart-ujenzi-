@@ -13,6 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $role     = 'customer'; // default role for self-registration
+    $region   = trim($_POST['region_id'] ?? '');
+    $district = trim($_POST['district_id'] ?? '');
+    $ward     = trim($_POST['ward_id'] ?? '');
+    $location = trim("$region, $district, $ward", ' ,');
 
     if (!$name || !$email || !$password) {
         $error = 'All fields are required';
@@ -27,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)');
-            $stmt->execute([$name, $email, $hash, $role]);
+            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
+            $stmt->execute([$name, $email, $hash, $role, $location]);
             $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
         }
     }
@@ -99,16 +103,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">Region</label>
-                    <select name="region_id" id="region_id" required
-                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
-                        <option value="" class="text-gray-400">Select Region</option>
+                    <select name="region_id" id="region_id"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="" class="bg-gray-800 text-gray-400">Select Region</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">District</label>
-                    <select name="district_id" id="district_id" required disabled
-                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
-                        <option value="" class="text-gray-400">Select District</option>
+                    <select name="district_id" id="district_id" disabled
+                            class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="" class="bg-gray-800 text-gray-400">Select District</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Ward / Mtaa</label>
+                    <select name="ward_id" id="ward_id" disabled
+                            class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="" class="bg-gray-800 text-gray-400">Select Ward</option>
                     </select>
                 </div>
 

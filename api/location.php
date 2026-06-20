@@ -18,4 +18,11 @@ if ($action === 'districts' && isset($_GET['region_id'])) {
     exit;
 }
 
+if ($action === 'wards' && isset($_GET['district_id'])) {
+    $districtName = $_GET['district_id'];
+    $wards = runQuery("SELECT id, name FROM wards WHERE district_id = (SELECT id FROM districts WHERE name = ?) ORDER BY name", [$districtName]);
+    echo json_encode($wards);
+    exit;
+}
+
 echo json_encode([]);

@@ -96,3 +96,20 @@ INSERT INTO districts (region_id, name) VALUES
 (30, 'Kati'), (30, 'Kusini'),
 -- Unguja Mjini Magharibi (31)
 (31, 'Magharibi A'), (31, 'Magharibi B'), (31, 'Mjini');
+
+-- Sample wards/mitaa for key districts
+INSERT INTO wards (district_id, name) VALUES
+-- Arusha City
+(1, 'Sekei'), (1, 'Themi'), (1, 'Sokon One'), (1, 'Sombetini'), (1, 'Olasiti'), (1, 'Elerai'),
+-- Ilala (Dar es Salaam)
+(8, 'Kariakoo'), (8, 'Mchikichini'), (8, 'Buguruni'), (8, 'Kipawa'), (8, 'Tabata'),
+-- Kinondoni (Dar es Salaam)
+(10, 'Mikocheni'), (10, 'Sinza'), (10, 'Mwananyamala'), (10, 'Magomeni'), (10, 'Kinondoni'),
+-- Temeke (Dar es Salaam)
+(11, 'Temeke'), (11, 'Mbagala'), (11, 'Kurasini'), (11, 'Chang''ombe'), (11, 'Tandika'),
+-- Ubungo (Dar es Salaam)
+(12, 'Ubungo'), (12, 'Kimara'), (12, 'Manzese'), (12, 'Mabibo'), (12, 'Kibamba'),
+-- Moshi Municipal
+(50, 'Majengo'), (50, 'Kisutu'), (50, 'Mwembechai'), (50, 'St. Joseph'), (50, 'Bondeni'),
+-- Mwanza (Nyamagana)
+(98, 'Nyamagana'), (98, 'Mbugani'), (98, 'Pamba'), (98, 'Kirumba'), (98, 'Mwendasoni');
