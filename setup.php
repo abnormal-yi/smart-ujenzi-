@@ -76,6 +76,13 @@ try {
     }
 
     out("[OK] Tables created and seed data inserted", $isCLI);
+
+    $locationSeed = file_get_contents(__DIR__ . '/database/seed_locations.sql');
+    $locStatements = array_filter(array_map('trim', explode(';', $locationSeed)), fn($s) => $s !== '');
+    foreach ($locStatements as $stmt) {
+        $pdo->exec($stmt);
+    }
+    out("[OK] Tanzania location data seeded", $isCLI);
     out("", $isCLI);
     out("--- Demo Accounts ---", $isCLI);
     out("super@example.com / admin123 (Super Admin)", $isCLI);

@@ -208,6 +208,26 @@ CREATE TABLE project_media (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
+-- Table: regions
+-- Tanzania administrative regions (31 total)
+-- ====================
+CREATE TABLE regions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: districts
+-- Tanzania districts within regions (~184 total)
+-- ====================
+CREATE TABLE districts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    region_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    FOREIGN KEY(region_id) REFERENCES regions(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
 -- Seed Data
 -- ====================
 
