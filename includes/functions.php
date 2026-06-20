@@ -60,3 +60,21 @@ function requireAdminManager(): void {
 function requireLogin(): void {
     requireAuth();
 }
+
+function getDeviceToken(): string {
+    if (isset($_COOKIE['device_token'])) {
+        return $_COOKIE['device_token'];
+    }
+    $token = bin2hex(random_bytes(32));
+    setcookie('device_token', $token, time() + 86400 * 365, '/', '', false, true);
+    return $token;
+}
+
+function isKnownDevice(int $userId, string $token): bool {
+    $res = runQuery("SELECT id FROM user_devices WHERE user_id = ? AND device_token = ?", [$userId, $token]);
+    return !empty($res);
+}
+
+function registerDevice(int $userId, string $token): void {
+    executeQuery("INSERT INTO user_devices (user_id, device_token) VALUES (?, ?)", [$userId, $token]);
+}

@@ -228,6 +228,32 @@ CREATE TABLE districts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================
+-- Table: user_devices
+-- Known devices/browsers for MFA skip
+-- ====================
+CREATE TABLE user_devices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    device_token VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: otp_codes
+-- One-time passwords sent via email for MFA
+-- ====================
+CREATE TABLE otp_codes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used TINYINT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
 -- Seed Data
 -- ====================
 
