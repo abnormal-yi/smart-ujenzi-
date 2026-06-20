@@ -41,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartUjenzi - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/location.js"></script>
 </head>
 <body class="min-h-screen bg-[#524B6B] flex items-center justify-center p-4 sm:p-8">
 
@@ -96,9 +97,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
                            placeholder="Min 6 characters">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Region</label>
+                    <select name="region_id" id="region_id" required
+                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="" class="text-gray-400">Select Region</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">District</label>
+                    <select name="district_id" id="district_id" required disabled
+                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="" class="text-gray-400">Select District</option>
+                    </select>
+                </div>
 
                 <button type="submit"
-                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-4 px-4 rounded-xl transition-colors mt-4">
+                         class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-4 px-4 rounded-xl transition-colors mt-4">
                     Create Account
                 </button>
 
