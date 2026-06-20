@@ -110,15 +110,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- Email input field with floating label -->
                 <div class="relative">
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Email</label>
-                    <input type="email" name="email" value="admin@example.com"
+                    <input type="email" name="email" placeholder="you@example.com"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#20D08A] transition-colors"
-                           placeholder="admin@example.com" required>
+                           placeholder="you@example.com" required>
                 </div>
 
                 <!-- Password input field with floating label -->
                 <div class="relative">
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Password</label>
-                    <input type="password" name="password" value="<?= APP_ENV === 'local' ? 'admin123' : '' ?>"
+                    <input type="password" name="password" placeholder="********"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#20D08A] transition-colors"
                            placeholder="********" required>
                 </div>
@@ -129,30 +129,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Log in
                 </button>
 
-                <!-- Demo accounts reference for testing -->
                 <p class="text-gray-400 text-sm mt-6">
                     Don't have an account?
                     <a href="register.php" class="text-yellow-500 hover:underline font-medium">Register</a>
                 </p>
-                <?php
-                $demoAccounts = [
-                    ['super@example.com', 'admin123', 'Super Admin'],
-                    ['zainab@example.com', 'manager123', 'Admin'],
-                    ['steve@example.com', 'manager123', 'Project Manager'],
-                    ['teleza@example.com', 'manager123', 'Project Manager'],
-                    ['mteja@example.com', 'manager123', 'Client'],
-                    ['ali@example.com', 'manager123', 'Fundi'],
-                    ['david@example.com', 'manager123', 'Fundi'],
-                ];
-                ?>
-                <div class="text-center mt-4">
-                    <p class="text-gray-400 text-sm leading-relaxed">
-                        Demo Accounts:<br>
-                        <?php foreach ($demoAccounts as $acct): ?>
-                        <span class="text-gray-300"><?= $acct[0] ?> / <?= $acct[1] ?> (<?= $acct[2] ?>)</span><br>
-                        <?php endforeach; ?>
-                    </p>
-                </div>
             </form>
         </div>
     </div>
