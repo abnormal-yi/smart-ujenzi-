@@ -19,8 +19,8 @@ if ($action === 'districts' && isset($_GET['region_id'])) {
 }
 
 if ($action === 'wards' && isset($_GET['district_id'])) {
-    $districtName = $_GET['district_id'];
-    $wards = runQuery("SELECT id, name FROM wards WHERE district_id = (SELECT id FROM districts WHERE name = ?) ORDER BY name", [$districtName]);
+    $districtId = (int)$_GET['district_id'];
+    $wards = runQuery("SELECT id, name FROM wards WHERE district_id = ? ORDER BY name", [$districtId]);
     echo json_encode($wards);
     exit;
 }
