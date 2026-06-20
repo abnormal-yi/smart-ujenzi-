@@ -43,7 +43,6 @@ $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accep
                     <th class="pb-3 font-semibold text-gray-600">Customer</th>
                     <th class="pb-3 font-semibold text-gray-600">Type</th>
                     <th class="pb-3 font-semibold text-gray-600">Location</th>
-                    <th class="pb-3 font-semibold text-gray-600">Budget Range</th>
                     <th class="pb-3 font-semibold text-gray-600">Status</th>
                     <th class="pb-3 font-semibold text-gray-600">Assigned PM</th>
                     <th class="pb-3 font-semibold text-gray-600">Actions</th>
@@ -56,7 +55,6 @@ $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accep
                     <td class="py-3 font-medium"><?= htmlspecialchars($r['customer_name']) ?></td>
                     <td class="py-3"><?= htmlspecialchars($r['project_type']) ?></td>
                     <td class="py-3 text-gray-600"><?= htmlspecialchars($r['location']) ?></td>
-                    <td class="py-3 text-gray-600"><?= htmlspecialchars($r['budget_range'] ?? '—') ?></td>
                     <td class="py-3">
                         <span class="badge <?= $statusColors[$r['status']] ?? 'badge-gray' ?>"><?= $r['status'] ?></span>
                     </td>

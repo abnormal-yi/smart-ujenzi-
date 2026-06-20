@@ -5,8 +5,8 @@ requireRole(['client']);
 require_once __DIR__ . '/../includes/header.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_request'])) {
-    runQuery("INSERT INTO customer_requests (customer_id, company_id, project_type, location, budget_range, description) VALUES (?,?,?,?,?,?)",
-        [$_SESSION['user_id'], $_POST['company_id'], $_POST['project_type'], $_POST['location'], $_POST['budget_range'], $_POST['description']]);
+    runQuery("INSERT INTO customer_requests (customer_id, company_id, project_type, location, description) VALUES (?,?,?,?,?)",
+        [$_SESSION['user_id'], $_POST['company_id'], $_POST['project_type'], $_POST['location'], $_POST['description']]);
     $success = 'Request submitted! Admin will review shortly.';
 }
 
@@ -110,11 +110,7 @@ $gradients = ['from-blue-100 to-blue-50', 'from-green-100 to-green-50', 'from-am
                 <input type="text" name="location" required placeholder="e.g. Dar es Salaam, Kinondoni"
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Budget Range</label>
-                <input type="text" name="budget_range" required placeholder="e.g. TZS 50M - 100M"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500">
-            </div>
+
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea name="description" rows="4" required placeholder="Describe your project requirements..."

@@ -36,7 +36,6 @@ $requests = runQuery("SELECT cr.*, c.name as company_name, pm.name as pm_name FR
         <?php endif; ?>
 
         <div class="flex flex-wrap gap-4 text-sm text-gray-500">
-            <span><span class="font-medium text-gray-700">Budget Range:</span> <?= htmlspecialchars($r['budget_range'] ?? 'N/A') ?></span>
             <?php if ($r['assigned_pm_id']): ?>
             <span><span class="font-medium text-gray-700">PM:</span> <?= htmlspecialchars($r['pm_name'] ?? 'Assigned') ?></span>
             <?php endif; ?>

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/header.php';
 $userId = $_SESSION['user_id'];
 
 $projectCount = runQuery("SELECT COUNT(*) as c FROM projects WHERE project_manager_id = ?", [$userId])[0]['c'];
-$pendingRequests = runQuery("SELECT COUNT(*) as c FROM customer_requests WHERE assigned_pm_id = ? AND budget_status = 'pending'", [$userId])[0]['c'];
+$pendingRequests = 0;
 $tasksDue = runQuery("SELECT COUNT(*) as c FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.project_manager_id = ? AND t.deadline < CURDATE() AND t.status != 'Completed'", [$userId])[0]['c'];
 
 $myProjects = runQuery("SELECT * FROM projects WHERE project_manager_id = ? ORDER BY status, start_date DESC", [$userId]);
@@ -28,7 +28,7 @@ $myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_na
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm text-gray-500">Pending Budget Approvals</p>
+                <p class="text-sm text-gray-500">Pending Reviews</p>
                 <p class="text-3xl font-bold text-gray-800 mt-1"><?= $pendingRequests ?></p>
             </div>
             <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600">
@@ -100,7 +100,7 @@ $myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_na
                             <td class="py-3 text-gray-800"><?= htmlspecialchars($r['client_name']) ?></td>
                             <td class="py-3 text-gray-600"><?= htmlspecialchars($r['company_name'] ?? 'N/A') ?></td>
                             <td class="py-3">
-                                <span class="px-2 py-1 text-xs rounded-full <?= $r['budget_status'] === 'approved' ? 'bg-green-100 text-green-700' : ($r['budget_status'] === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700') ?>"><?= $r['budget_status'] ?? 'No Budget' ?></span>
+                                <span class="px-2 py-1 text-xs rounded-full <?= $r['status'] === 'Approved' ? 'bg-green-100 text-green-700' : ($r['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700') ?>"><?= $r['status'] ?? 'Pending' ?></span>
                             </td>
                         </tr>
                         <?php endforeach; ?>

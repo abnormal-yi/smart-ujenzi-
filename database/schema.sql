@@ -163,7 +163,6 @@ CREATE TABLE customer_requests (
     company_id INT,
     project_type VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL,
-    budget_range VARCHAR(255),
     description TEXT,
     company_proposal TEXT,
     assigned_pm_id INT,
@@ -275,8 +274,8 @@ INSERT INTO companies (name, tagline, location, city, country, rating, verified,
 ('Pamoja Modern Designs', 'Building For the Community', 'Sinza, Dar es Salaam', 'dar', 'Tanzania', 4.2, 0, 4, 4, 'NCA-Class-4-Pending-231', 2, 'PA', 'COMP_3');
 
 -- Sample customer request
-INSERT INTO customer_requests (customer_id, company_id, project_type, location, budget_range, description, status) VALUES
-(6, 1, 'Residential House', 'Dar es Salaam, Masaki', '50M - 100M TZS', 'Looking for a reliable company to build a 4-bedroom house. Have plot already.', 'Pending');
+INSERT INTO customer_requests (customer_id, company_id, project_type, location, description, status) VALUES
+(6, 1, 'Residential House', 'Dar es Salaam, Masaki', 'Looking for a reliable company to build a 4-bedroom house. Have plot already.', 'Pending');
 
 -- Sample projects with different statuses
 INSERT INTO projects (id, name, description, status, project_manager_id, customer_id, start_date, end_date) VALUES
