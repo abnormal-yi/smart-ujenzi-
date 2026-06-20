@@ -83,6 +83,13 @@ try {
         $pdo->exec($stmt);
     }
     out("[OK] Tanzania location data seeded", $isCLI);
+
+    $wardSeed = file_get_contents(__DIR__ . '/database/seed_wards.sql');
+    $wardStatements = array_filter(array_map('trim', explode(';', $wardSeed)), fn($s) => $s !== '');
+    foreach ($wardStatements as $stmt) {
+        $pdo->exec($stmt);
+    }
+    out("[OK] Ward data seeded (" . count($wardStatements) . " wards inserted)", $isCLI);
     out("", $isCLI);
     out("--- Demo Accounts ---", $isCLI);
     out("super@example.com / admin123 (Super Admin)", $isCLI);
