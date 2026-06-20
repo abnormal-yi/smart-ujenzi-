@@ -42,6 +42,13 @@ define('DB_PASS', $dbPass);
 define('DB_SOCKET', $dbSocket);
 define('APP_ENV', $appEnv);
 
+define('SMTP_HOST', defined('OVERRIDE_SMTP_HOST') ? OVERRIDE_SMTP_HOST : '');
+define('SMTP_PORT', defined('OVERRIDE_SMTP_PORT') ? OVERRIDE_SMTP_PORT : 587);
+define('SMTP_USER', defined('OVERRIDE_SMTP_USER') ? OVERRIDE_SMTP_USER : '');
+define('SMTP_PASS', defined('OVERRIDE_SMTP_PASS') ? OVERRIDE_SMTP_PASS : '');
+define('SMTP_FROM', defined('OVERRIDE_SMTP_FROM') ? OVERRIDE_SMTP_FROM : 'noreply@smartujenzi.com');
+define('SMTP_FROM_NAME', defined('OVERRIDE_SMTP_FROM_NAME') ? OVERRIDE_SMTP_FROM_NAME : 'SmartUjenzi');
+
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {

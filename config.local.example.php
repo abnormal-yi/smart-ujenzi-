@@ -1,10 +1,17 @@
 <?php
-// Override database settings for production.
-// Copy these credentials from your hosting control panel (cPanel).
-// This file is gitignored — safe to keep passwords here locally.
+// Database + SMTP overrides for production.
+// Copy credentials from your hosting control panel.
+// This file is gitignored — safe to keep passwords here.
 
-define('OVERRIDE_DB_HOST', '');   // e.g. "localhost"
-define('OVERRIDE_DB_NAME', '');   // e.g. "cpses_user_smart_ujenzi"
-define('OVERRIDE_DB_USER', '');   // e.g. "cpses_user"
-define('OVERRIDE_DB_PASS', '');   // your database password
-define('OVERRIDE_DB_SOCKET', ''); // leave empty for hosting
+define('OVERRIDE_DB_HOST', '');
+define('OVERRIDE_DB_NAME', '');
+define('OVERRIDE_DB_USER', '');
+define('OVERRIDE_DB_PASS', '');
+define('OVERRIDE_DB_SOCKET', '');
+
+define('OVERRIDE_SMTP_HOST', '');
+define('OVERRIDE_SMTP_PORT', 587);
+define('OVERRIDE_SMTP_USER', '');
+define('OVERRIDE_SMTP_PASS', '');
+define('OVERRIDE_SMTP_FROM', 'noreply@smartujenzi.com');
+define('OVERRIDE_SMTP_FROM_NAME', 'SmartUjenzi');
