@@ -29,16 +29,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_user'])) {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role = $_POST['role'];
-    runQuery("INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)", [$name, $email, $password, $role]);
-    $success = 'User added!';
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $role = $_POST['role'] ?? '';
+
+    if (!$name || !$email || !$role) {
+        $error = 'All fields are required.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Invalid email address.';
+    } else {
+        $stmt = getDB()->prepare('SELECT id FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            $error = 'Email already registered.';
+        } else {
+            $plainPassword = substr(bin2hex(random_bytes(5)), 0, 10);
+            $hash = password_hash($plainPassword, PASSWORD_DEFAULT);
+            runQuery("INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)", [$name, $email, $hash, $role]);
+
+            require_once __DIR__ . '/../includes/mailer.php';
+            $subject = 'Your SmartUjenzi Account';
+            $body = "<h2>Welcome to SmartUjenzi!</h2>
+                     <p>Hi <strong>" . htmlspecialchars($name) . "</strong>,</p>
+                     <p>Your account has been created with role: <strong>" . ucfirst(str_replace('_', ' ', $role)) . "</strong></p>
+                     <p><strong>Email:</strong> " . htmlspecialchars($email) . "</p>
+                     <p><strong>Password:</strong> " . htmlspecialchars($plainPassword) . "</p>
+                     <p><a href=\"" . (defined('APP_URL') ? APP_URL : 'https://trisa.luxurywebs.com') . "/login.php\">Log in here</a></p>
+                     <p>Please change your password after logging in.</p>";
+
+            if (sendEmail($email, $subject, $body)) {
+                $success = 'User added! Login credentials sent to ' . htmlspecialchars($email);
+            } else {
+                $success = 'User added but email could not be sent. Password: ' . htmlspecialchars($plainPassword);
+            }
+        }
+    }
 }
 
 $users = runQuery("SELECT * FROM users ORDER BY FIELD(role, 'super_admin', 'admin', 'project_manager', 'fundi', 'client'), name");
-$roles = ['super_admin', 'admin', 'project_manager', 'fundi', 'client'];
+$allowedRoles = ['admin', 'project_manager', 'fundi'];
 
 $roleColors = [
     'super_admin' => 'bg-red-100 text-red-700',
@@ -91,7 +120,7 @@ $roleColors = [
                             <form method="POST" class="flex items-center gap-1">
                                 <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                 <select name="role" class="text-xs border border-gray-200 rounded px-2 py-1">
-                                    <?php foreach ($roles as $r): ?>
+                                    <?php foreach ($allowedRoles as $r): ?>
                                     <option value="<?= $r ?>" <?= $u['role'] === $r ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $r)) ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -128,13 +157,9 @@ $roleColors = [
                 <input type="email" name="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input type="password" name="password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                 <select name="role" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    <?php foreach ($roles as $r): ?>
+                    <?php foreach ($allowedRoles as $r): ?>
                     <option value="<?= $r ?>"><?= ucfirst(str_replace('_', ' ', $r)) ?></option>
                     <?php endforeach; ?>
                 </select>
