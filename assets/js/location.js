@@ -5,11 +5,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (!regionSelect) return;
 
+    var ts = Date.now();
+
     function setOptions(select, options, placeholder) {
         select.innerHTML = '<option value="">' + placeholder + '</option>';
         options.forEach(function(opt) {
             var el = document.createElement('option');
-            el.value = opt.id || opt.name;
+            el.value = (opt.id != null ? opt.id : opt.value) || opt.name;
             el.textContent = opt.name;
             el.className = 'bg-gray-800 text-white';
             select.appendChild(el);
@@ -17,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Load regions
-    fetch('/api/location.php?action=regions')
+    fetch('/api/location.php?action=regions&_=' + ts)
         .then(function(r) { return r.json(); })
         .then(function(regions) {
             setOptions(regionSelect, regions, 'Select Region');
@@ -38,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        fetch('/api/location.php?action=districts&region_id=' + this.value)
+        fetch('/api/location.php?action=districts&region_id=' + this.value + '&_=' + ts)
             .then(function(r) { return r.json(); })
             .then(function(districts) {
                 setOptions(districtSelect, districts, 'Select District');
@@ -58,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            fetch('/api/location.php?action=wards&district_id=' + this.value)
+            fetch('/api/location.php?action=wards&district_id=' + this.value + '&_=' + Date.now())
                 .then(function(r) { return r.json(); })
                 .then(function(wards) {
                     setOptions(wardSelect, wards, 'Select Ward');
