@@ -38,31 +38,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Load location data inline from database
-try {
-    $db = getDB();
-    $regions = $db->query("SELECT name FROM regions ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
-    $distRows = $db->query("SELECT d.name AS district, r.name AS region FROM districts d JOIN regions r ON r.id = d.region_id ORDER BY d.id")->fetchAll(PDO::FETCH_ASSOC);
-    $wardRows = $db->query("SELECT d.name AS district, w.name AS ward FROM wards w JOIN districts d ON d.id = w.district_id ORDER BY d.id, w.name")->fetchAll(PDO::FETCH_ASSOC);
-} catch (Exception $e) {
-    $regions = [];
-    $distRows = [];
-    $wardRows = [];
+// Load location data from cache file (fast, no DB query on every request)
+$cacheFile = sys_get_temp_dir() . '/smartujenzi-location-cache.json';
+if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
+    $cached = file_get_contents($cacheFile);
+    $parts = explode("\n\n\n", $cached, 3);
+    $jsonRegions = $parts[0] ?? '[]';
+    $jsonDistricts = $parts[1] ?? '{}';
+    $jsonWards = $parts[2] ?? '{}';
+} else {
+    try {
+        $db = getDB();
+        $regions = $db->query("SELECT name FROM regions ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+        $distRows = $db->query("SELECT d.name AS district, r.name AS region FROM districts d JOIN regions r ON r.id = d.region_id ORDER BY d.id")->fetchAll(PDO::FETCH_ASSOC);
+        $wardRows = $db->query("SELECT d.name AS district, w.name AS ward FROM wards w JOIN districts d ON d.id = w.district_id ORDER BY d.id, w.name")->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $regions = []; $distRows = []; $wardRows = [];
+    }
+    $distMap = [];
+    foreach ($distRows as $d) $distMap[$d['district']] = $d['region'];
+    $wardMap = [];
+    foreach ($wardRows as $w) $wardMap[$w['district']][] = $w['ward'];
+    $jsonRegions = json_encode($regions, JSON_UNESCAPED_UNICODE);
+    $jsonDistricts = json_encode($distMap, JSON_UNESCAPED_UNICODE);
+    $jsonWards = json_encode($wardMap, JSON_UNESCAPED_UNICODE);
+    @file_put_contents($cacheFile, $jsonRegions . "\n\n\n" . $jsonDistricts . "\n\n\n" . $jsonWards);
 }
-
-$distMap = [];
-foreach ($distRows as $d) {
-    $distMap[$d['district']] = $d['region'];
-}
-
-$wardMap = [];
-foreach ($wardRows as $w) {
-    $wardMap[$w['district']][] = $w['ward'];
-}
-
-$jsonRegions = json_encode($regions, JSON_UNESCAPED_UNICODE);
-$jsonDistricts = json_encode($distMap, JSON_UNESCAPED_UNICODE);
-$jsonWards = json_encode($wardMap, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
 <html lang="en">
