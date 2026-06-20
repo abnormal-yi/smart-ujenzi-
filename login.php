@@ -40,14 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$sent) {
                 $_SESSION['otp_code_debug'] = $code;
-                $error = 'Could not send OTP email. SMTP not working. Use code below on the OTP page.';
-            } else {
-                $_SESSION['otp_user_id'] = $user['id'];
-                $_SESSION['otp_user_name'] = $user['name'];
-                $_SESSION['otp_user_email'] = $user['email'];
-                $_SESSION['otp_role'] = $user['role'];
-                redirect('otp-verify.php');
             }
+            $_SESSION['otp_user_id'] = $user['id'];
+            $_SESSION['otp_user_name'] = $user['name'];
+            $_SESSION['otp_user_email'] = $user['email'];
+            $_SESSION['otp_role'] = $user['role'];
+            redirect('otp-verify.php');
         }
     } else {
         $error = 'Invalid email or password';
