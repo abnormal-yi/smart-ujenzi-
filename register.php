@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name     = trim($_POST['name'] ?? '');
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $role     = 'customer'; // default role for self-registration
+    $role     = 'customer';
     $region   = trim($_POST['region_id'] ?? '');
     $district = trim($_POST['district_id'] ?? '');
     $ward     = trim($_POST['ward_id'] ?? '');
@@ -37,6 +37,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Load location data inline from database
+try {
+    $db = getDB();
+    $regions = $db->query("SELECT name FROM regions ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+    $distRows = $db->query("SELECT d.name AS district, r.name AS region FROM districts d JOIN regions r ON r.id = d.region_id ORDER BY d.id")->fetchAll(PDO::FETCH_ASSOC);
+    $wardRows = $db->query("SELECT d.name AS district, w.name AS ward FROM wards w JOIN districts d ON d.id = w.district_id ORDER BY d.id, w.name")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $regions = [];
+    $distRows = [];
+    $wardRows = [];
+}
+
+$distMap = [];
+foreach ($distRows as $d) {
+    $distMap[$d['district']] = $d['region'];
+}
+
+$wardMap = [];
+foreach ($wardRows as $w) {
+    $wardMap[$w['district']][] = $w['ward'];
+}
+
+$jsonRegions = json_encode($regions, JSON_UNESCAPED_UNICODE);
+$jsonDistricts = json_encode($distMap, JSON_UNESCAPED_UNICODE);
+$jsonWards = json_encode($wardMap, JSON_UNESCAPED_UNICODE);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,8 +71,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartUjenzi - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="api/location-data.php"></script>
-    <script src="assets/js/location.js"></script>
+    <script>
+var TZ_REGIONS = <?= $jsonRegions ?>;
+var TZ_DISTRICTS = <?= $jsonDistricts ?>;
+var TZ_WARDS = <?= $jsonWards ?>;
+
+document.addEventListener('DOMContentLoaded', function() {
+    var RS = document.getElementById('region_id');
+    var DS = document.getElementById('district_id');
+    var WS = document.getElementById('ward_id');
+    if (!RS) return;
+    var RD = TZ_DISTRICTS || {}, WD = TZ_WARDS || {};
+    function fill(sel, arr, ph) {
+        sel.innerHTML = '<option value="">' + ph + '</option>';
+        arr.forEach(function(x) {
+            var o = document.createElement('option');
+            o.value = x; o.textContent = x; sel.appendChild(o);
+        });
+    }
+    function getDistricts(region) {
+        var a = [];
+        for (var d in RD) { if (RD[d] === region) a.push(d); }
+        return a.sort();
+    }
+    fill(RS, TZ_REGIONS || [], 'Select Region');
+    RS.addEventListener('change', function() {
+        var v = this.value;
+        DS.disabled = !v; DS.innerHTML = '<option value="">' + (v ? 'Select District' : 'Loading...') + '</option>';
+        WS.disabled = true; WS.innerHTML = '<option value="">Select Ward</option>';
+        if (v) fill(DS, getDistricts(v), 'Select District');
+    });
+    if (DS && WS) {
+        DS.addEventListener('change', function() {
+            var v = this.value;
+            WS.disabled = !v; WS.innerHTML = '<option value="">' + (v ? 'Loading...' : 'Select Ward') + '</option>';
+            if (v) fill(WS, WD[v] || [], 'Select Ward');
+        });
+    }
+});
+    </script>
 </head>
 <body class="min-h-screen bg-[#524B6B] flex items-center justify-center p-4 sm:p-8">
 
