@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                  <p>If you did not attempt to log in, please ignore this email.</p>");
 
             if (!$sent) {
-                $error = 'Could not send OTP email. Your SMTP settings may be incorrect. Please try again or contact support.';
+                $_SESSION['otp_code_debug'] = $code;
+                $error = 'Could not send OTP email. SMTP not working. Use code below on the OTP page.';
             } else {
                 $_SESSION['otp_user_id'] = $user['id'];
                 $_SESSION['otp_user_name'] = $user['name'];

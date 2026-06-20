@@ -7,6 +7,8 @@ if (isAuthenticated()) {
 }
 
 $error = '';
+$debugCode = $_SESSION['otp_code_debug'] ?? '';
+unset($_SESSION['otp_code_debug']);
 $userId = $_SESSION['otp_user_id'] ?? null;
 
 if (!$userId) {
@@ -54,6 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2 class="text-3xl font-bold">Verify OTP</h2>
         <p class="text-gray-400 mt-2">Enter the 6-digit code sent to your email</p>
     </div>
+
+    <?php if ($debugCode): ?>
+        <div class="p-4 bg-yellow-500/10 border border-yellow-500/50 rounded-lg text-yellow-500 text-sm text-center mb-4">
+            Email not sent. Use this code: <strong class="text-2xl tracking-widest block mt-2"><?= $debugCode ?></strong>
+            <p class="text-xs mt-2">Enter the code above and click Verify.</p>
+        </div>
+    <?php endif; ?>
 
     <form method="POST" class="space-y-6">
         <?php if ($error): ?>
