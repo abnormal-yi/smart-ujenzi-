@@ -209,3 +209,11 @@ try {
     if (!$isCLI) echo '<p>Check your <code>config.local.php</code> database settings.</p>';
     exit(1);
 }
+
+function out($msg, $isCLI) {
+    if ($isCLI) {
+        echo ($msg ?? '') . "\n";
+    } else {
+        echo nl2br(htmlspecialchars($msg ?? '')) . "\n";
+    }
+}
