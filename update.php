@@ -9,6 +9,7 @@ $files = [
     'otp-verify.php'       => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/otp-verify.php',
     'register.php'         => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/register.php',
     'includes/mailer.php'  => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/includes/mailer.php',
+    'test-mail.php'        => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/test-mail.php',
 ];
 
 $base = __DIR__;
