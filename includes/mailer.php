@@ -14,8 +14,9 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $mail->SMTPAuth   = true;
         $mail->Username   = defined('SMTP_USER') ? SMTP_USER : '';
         $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : '';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = defined('SMTP_PORT') ? SMTP_PORT : 587;
+        $port = defined('SMTP_PORT') ? SMTP_PORT : 587;
+        $mail->SMTPSecure = $port == 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = $port;
 
         $from     = defined('SMTP_FROM') ? SMTP_FROM : 'noreply@smartujenzi.com';
         $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'SmartUjenzi';
