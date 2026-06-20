@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartUjenzi - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/location-data.js"></script>
     <script src="assets/js/location.js"></script>
 </head>
 <body class="min-h-screen bg-[#524B6B] flex items-center justify-center p-4 sm:p-8">

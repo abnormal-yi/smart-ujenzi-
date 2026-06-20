@@ -1,72 +1,51 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const regionSelect = document.getElementById('region_id');
-    const districtSelect = document.getElementById('district_id');
-    const wardSelect = document.getElementById('ward_id');
+    var regionSel = document.getElementById('region_id');
+    var districtSel = document.getElementById('district_id');
+    var wardSel = document.getElementById('ward_id');
+    if (!regionSel) return;
 
-    if (!regionSelect) return;
+    var regionToDistrict = TZ_DISTRICTS || {};
+    var wardData = TZ_WARDS || {};
 
-    var ts = Date.now();
-
-    function setOptions(select, options, placeholder) {
-        select.innerHTML = '<option value="">' + placeholder + '</option>';
-        options.forEach(function(opt) {
+    function populate(sel, items, placeholder, valKey) {
+        sel.innerHTML = '<option value="">' + placeholder + '</option>';
+        items.forEach(function(item) {
             var el = document.createElement('option');
-            el.value = (opt.id != null ? opt.id : opt.value) || opt.name;
-            el.textContent = opt.name;
-            el.className = 'bg-gray-800 text-white';
-            select.appendChild(el);
+            el.value = valKey ? item[valKey] : item;
+            el.textContent = item.name || item;
+            sel.appendChild(el);
         });
     }
 
-    // Load regions
-    fetch('/api/location.php?action=regions&_=' + ts)
-        .then(function(r) { return r.json(); })
-        .then(function(regions) {
-            setOptions(regionSelect, regions, 'Select Region');
-        })
-        .catch(function() {});
+    populate(regionSel, (TZ_REGIONS || []).map(function(n) { return { name: n }; }), 'Select Region', 'name');
 
-    // Load districts on region change
-    regionSelect.addEventListener('change', function() {
-        districtSelect.innerHTML = '<option value="">Loading...</option>';
-        districtSelect.disabled = true;
-        if (wardSelect) {
-            wardSelect.innerHTML = '<option value="">Select Ward</option>';
-            wardSelect.disabled = true;
+    regionSel.addEventListener('change', function() {
+        districtSel.innerHTML = '<option value="">Select District</option>';
+        districtSel.disabled = !this.value;
+        if (wardSel) {
+            wardSel.innerHTML = '<option value="">Select Ward</option>';
+            wardSel.disabled = true;
         }
-
-        if (!this.value) {
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-            return;
+        var regionName = this.value;
+        if (!regionName) return;
+        var dists = [];
+        for (var d in regionToDistrict) {
+            if (regionToDistrict[d] === regionName) {
+                dists.push({ name: d });
+            }
         }
-
-        fetch('/api/location.php?action=districts&region_id=' + this.value + '&_=' + ts)
-            .then(function(r) { return r.json(); })
-            .then(function(districts) {
-                setOptions(districtSelect, districts, 'Select District');
-                districtSelect.disabled = false;
-            })
-            .catch(function() {});
+        dists.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        populate(districtSel, dists, 'Select District', 'name');
     });
 
-    // Load wards on district change
-    if (districtSelect && wardSelect) {
-        districtSelect.addEventListener('change', function() {
-            wardSelect.innerHTML = '<option value="">Loading...</option>';
-            wardSelect.disabled = true;
-
-            if (!this.value) {
-                wardSelect.innerHTML = '<option value="">Select Ward</option>';
-                return;
-            }
-
-            fetch('/api/location.php?action=wards&district_id=' + this.value + '&_=' + Date.now())
-                .then(function(r) { return r.json(); })
-                .then(function(wards) {
-                    setOptions(wardSelect, wards, 'Select Ward');
-                    wardSelect.disabled = false;
-                })
-                .catch(function() {});
+    if (districtSel && wardSel) {
+        districtSel.addEventListener('change', function() {
+            wardSel.innerHTML = '<option value="">Select Ward</option>';
+            wardSel.disabled = !this.value;
+            var distName = this.value;
+            if (!distName) return;
+            var wards = (wardData[distName] || []).map(function(w) { return { name: w }; });
+            populate(wardSel, wards, 'Select Ward', 'name');
         });
     }
 });
