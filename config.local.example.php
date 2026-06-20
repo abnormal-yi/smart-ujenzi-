@@ -13,6 +13,6 @@ define('OVERRIDE_SMTP_HOST', '');
 define('OVERRIDE_SMTP_PORT', 465);
 define('OVERRIDE_SMTP_USER', '');
 define('OVERRIDE_SMTP_PASS', '');
-define('OVERRIDE_SMTP_FROM', 'trisa@luxurywebs.com');
+define('OVERRIDE_SMTP_FROM', 'noreply@yourdomain.com');
 define('OVERRIDE_SMTP_FROM_NAME', 'SmartUjenzi');
-define('OVERRIDE_APP_URL', 'https://trisa.luxurywebs.com');
+define('OVERRIDE_APP_URL', 'https://yourdomain.com');
