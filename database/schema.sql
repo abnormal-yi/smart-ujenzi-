@@ -36,7 +36,8 @@ CREATE TABLE users (
     email VARCHAR(255) UNIQUE NOT NULL,       -- Login email (unique constraint)
     password VARCHAR(255) NOT NULL,           -- bcrypt hashed password
     role VARCHAR(50) NOT NULL,                -- Role: super_admin, admin, project_manager, fundi, client
-    location VARCHAR(255) DEFAULT ''           -- Region, District, Ward selected during registration
+    location VARCHAR(255) DEFAULT '',          -- Region, District, Ward selected during registration
+    skills TEXT DEFAULT ''                      -- Skills/trade for fundi role (e.g. Mason, Plumber)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================

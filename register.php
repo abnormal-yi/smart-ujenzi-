@@ -12,11 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name     = trim($_POST['name'] ?? '');
     $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $role     = 'customer';
+    $role     = in_array($_POST['role'] ?? '', ['client', 'fundi']) ? $_POST['role'] : 'client';
     $region   = trim($_POST['region_id'] ?? '');
     $district = trim($_POST['district_id'] ?? '');
     $ward     = trim($_POST['ward_id'] ?? '');
     $location = trim("$region, $district, $ward", ' ,');
+    $skills   = $role === 'fundi' ? trim($_POST['skills'] ?? '') : '';
 
     if (!$name || !$email || !$password) {
         $error = 'All fields are required';
@@ -31,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
-            $stmt->execute([$name, $email, $hash, $role, $location]);
+            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$name, $email, $hash, $role, $location, $skills]);
             $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
         }
     }
@@ -136,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="w-full lg:w-1/2 bg-[#0C0D10] text-white flex flex-col p-8 sm:p-16 lg:px-24 justify-center">
         <div class="max-w-md w-full mx-auto">
             <h2 class="text-4xl font-bold text-center mb-4">Create Account</h2>
-            <p class="text-gray-400 text-center mb-10">Register as a customer to get started</p>
+            <p class="text-gray-400 text-center mb-8">Register to get started</p>
 
             <form method="POST" class="space-y-5">
                 <?php if ($error): ?>
@@ -166,6 +167,30 @@ document.addEventListener('DOMContentLoaded', function() {
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
                            placeholder="Min 6 characters">
                 </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">I am a</label>
+                    <select name="role" id="role_sel"
+                            class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                        <option value="client" class="bg-gray-800">Client (Home Owner)</option>
+                        <option value="fundi" class="bg-gray-800">Fundi (Worker)</option>
+                    </select>
+                </div>
+
+                <div id="skills_div" style="display:none">
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Skills / Ujuzi</label>
+                    <input type="text" name="skills" id="skills_input"
+                           class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                           placeholder="e.g. Mason, Plumber, Electrician, Carpenter">
+                </div>
+
+                <script>
+                document.getElementById('role_sel').addEventListener('change', function() {
+                    document.getElementById('skills_div').style.display = this.value === 'fundi' ? '' : 'none';
+                    if (this.value !== 'fundi') document.getElementById('skills_input').value = '';
+                });
+                </script>
+
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">Region</label>
                     <select name="region_id" id="region_id"

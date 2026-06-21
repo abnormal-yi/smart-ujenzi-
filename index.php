@@ -70,7 +70,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                     <?php if ($isLoggedIn): ?>
                         <a href="dashboard.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-colors text-center">Go to Dashboard</a>
                     <?php else: ?>
-                        <a href="login.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-colors text-center">Start Free Trial</a>
+                        <a href="login.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-8 py-4 rounded-xl transition-colors text-center">Get Started</a>
                         <a href="register.php" class="border border-gray-600 hover:border-gray-500 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-center">Create Account</a>
                         <a href="#contractors" class="border border-gray-600 hover:border-gray-500 text-white font-semibold px-8 py-4 rounded-xl transition-colors text-center">Find a Builder</a>
                     <?php endif; ?>
@@ -394,7 +394,7 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                 <a href="dashboard.php" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-8 py-4 rounded-xl transition-colors shadow-sm">Go to Dashboard</a>
             <?php else: ?>
                 <a href="login.php" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold px-8 py-4 rounded-xl transition-colors shadow-sm">Get Started Free</a>
-                <a href="login.php" class="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold px-8 py-4 rounded-xl transition-colors">Schedule a Demo</a>
+                <a href="login.php" class="border border-gray-300 hover:border-gray-400 text-gray-700 font-semibold px-8 py-4 rounded-xl transition-colors">Learn More</a>
             <?php endif; ?>
         </div>
     </div>

@@ -131,11 +131,15 @@ try {
             out("  [OK] Created otp_codes table", $isCLI);
         }
 
-        // Add location column if missing
+        // Add missing columns to users table
         $cols = $pdo->query("SHOW COLUMNS FROM users")->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('location', $cols)) {
             $pdo->exec("ALTER TABLE users ADD COLUMN location VARCHAR(255) DEFAULT ''");
             out("  [OK] Added location column to users", $isCLI);
+        }
+        if (!in_array('skills', $cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN skills TEXT DEFAULT ''");
+            out("  [OK] Added skills column to users", $isCLI);
         }
 
         out("", $isCLI);
