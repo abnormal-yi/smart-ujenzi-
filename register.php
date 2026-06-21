@@ -31,9 +31,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
-            $stmt->execute([$name, $email, $hash, $role, $location]);
-            $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
+            try {
+                $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
+                $stmt->execute([$name, $email, $hash, $role, $location]);
+                $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
+            } catch (Exception $e) {
+                $error = 'Registration failed: ' . $e->getMessage();
+            }
         }
     }
 }
