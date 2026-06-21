@@ -10,6 +10,9 @@ $files = [
     'register.php'         => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/register.php',
     'includes/mailer.php'  => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/includes/mailer.php',
     'test-mail.php'        => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/test-mail.php',
+    'fundi-register.php'   => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/fundi-register.php',
+    'index.php'            => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/index.php',
+    'setup.php'            => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/setup.php',
 ];
 
 $base = __DIR__;

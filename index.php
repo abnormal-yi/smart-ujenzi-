@@ -431,6 +431,12 @@ $companies = runQuery('SELECT * FROM companies ORDER BY rating DESC');
                 </ul>
             </div>
         </div>
+
+        <div class="mt-8 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-gray-500">Are you a <span class="text-yellow-500 font-semibold">Fundi</span>? Register to get hired for construction projects.</p>
+            <a href="fundi-register.php" class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-6 py-3 rounded-xl text-sm transition-colors">Register as Fundi →</a>
+        </div>
+
         <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-600">
             &copy; <?= date('Y') ?> SmartUjenzi. All rights reserved.
         </div>

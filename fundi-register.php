@@ -8,37 +8,7 @@ if (isAuthenticated()) {
 $error = '';
 $success = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name     = trim($_POST['name'] ?? '');
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $role     = 'client';
-    $region   = trim($_POST['region_id'] ?? '');
-    $district = trim($_POST['district_id'] ?? '');
-    $ward     = trim($_POST['ward_id'] ?? '');
-    $location = trim("$region, $district, $ward", ' ,');
-
-    if (!$name || !$email || !$password) {
-        $error = 'All fields are required';
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $error = 'Invalid email address';
-    } elseif (strlen($password) < 6) {
-        $error = 'Password must be at least 6 characters';
-    } else {
-        $stmt = getDB()->prepare('SELECT id FROM users WHERE email = ?');
-        $stmt->execute([$email]);
-        if ($stmt->fetch()) {
-            $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
-        } else {
-            $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
-            $stmt->execute([$name, $email, $hash, $role, $location]);
-            $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
-        }
-    }
-}
-
-// Load location data from cache file (fast, no DB query on every request)
+// Load location data from cache
 $cacheFile = sys_get_temp_dir() . '/smartujenzi-location-cache.json';
 if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
     $cached = file_get_contents($cacheFile);
@@ -64,19 +34,54 @@ if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
     $jsonWards = json_encode($wardMap, JSON_UNESCAPED_UNICODE);
     @file_put_contents($cacheFile, $jsonRegions . "\n\n\n" . $jsonDistricts . "\n\n\n" . $jsonWards);
 }
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name     = trim($_POST['name'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $region   = trim($_POST['region_id'] ?? '');
+    $district = trim($_POST['district_id'] ?? '');
+    $ward     = trim($_POST['ward_id'] ?? '');
+    $location = trim("$region, $district, $ward", ' ,');
+    $skills   = trim($_POST['skills'] ?? '');
+
+    if (!$name || !$email || !$password) {
+        $error = 'All fields are required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = 'Invalid email address';
+    } elseif (strlen($password) < 6) {
+        $error = 'Password must be at least 6 characters';
+    } else {
+        $stmt = getDB()->prepare('SELECT id FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        if ($stmt->fetch()) {
+            $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
+        } else {
+            $hash = password_hash($password, PASSWORD_BCRYPT);
+            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$name, $email, $hash, 'fundi', $location, $skills]);
+            $success = 'Fundi account created! <a href="login.php" class="underline">Log in here</a>';
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartUjenzi - Register</title>
+    <title>SmartUjenzi - Fundi Registration</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
+    <style>
+        select option { background: #1f2937; color: #fff; }
+    </style>
+</head>
+<body class="min-h-screen bg-[#524B6B] flex items-center justify-center p-4 sm:p-8">
+
+<script>
 var TZ_REGIONS = <?= $jsonRegions ?>;
 var TZ_DISTRICTS = <?= $jsonDistricts ?>;
 var TZ_WARDS = <?= $jsonWards ?>;
-
 document.addEventListener('DOMContentLoaded', function() {
     var RS = document.getElementById('region_id');
     var DS = document.getElementById('district_id');
@@ -110,13 +115,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-    </script>
-</head>
-<body class="min-h-screen bg-[#524B6B] flex items-center justify-center p-4 sm:p-8">
+</script>
 
 <div class="flex w-full max-w-6xl min-h-[700px] overflow-hidden rounded-3xl shadow-2xl">
-
-    <!-- Left panel - decorative -->
     <div class="hidden lg:flex flex-col w-1/2 relative bg-slate-900 overflow-hidden">
         <img src="public/login-hero.jpg" alt="Construction" class="absolute inset-0 w-full h-full object-cover opacity-60">
         <div class="absolute inset-0 bg-gradient-to-t from-[#0C0D10] via-transparent to-transparent opacity-90"></div>
@@ -126,17 +127,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="text-2xl font-bold tracking-wider">SMART UJENZI</span>
             </div>
             <div class="text-white">
-                <h2 class="text-3xl font-bold mb-4">Join SmartUjenzi</h2>
-                <p class="text-gray-300 text-lg">Manage your construction projects, track materials, and collaborate with your team.</p>
+                <h2 class="text-3xl font-bold mb-4">Join as Fundi</h2>
+                <p class="text-gray-300 text-lg">Register your skills and start getting hired for construction projects.</p>
             </div>
         </div>
     </div>
 
-    <!-- Right panel - form -->
     <div class="w-full lg:w-1/2 bg-[#0C0D10] text-white flex flex-col p-8 sm:p-16 lg:px-24 justify-center">
         <div class="max-w-md w-full mx-auto">
-            <h2 class="text-4xl font-bold text-center mb-4">Create Account</h2>
-            <p class="text-gray-400 text-center mb-10">Register as a client to get started</p>
+            <h2 class="text-4xl font-bold text-center mb-4">Fundi Registration</h2>
+            <p class="text-gray-400 text-center mb-10">Register your skills to get hired</p>
 
             <form method="POST" class="space-y-5">
                 <?php if ($error): ?>
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Email</label>
                     <input type="email" name="email" required
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                           placeholder="you@example.com">
+                           placeholder="fundi@example.com">
                 </div>
 
                 <div class="relative">
@@ -165,6 +165,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input type="password" name="password" required minlength="6"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
                            placeholder="Min 6 characters">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Skills / Ujuzi</label>
+                    <input type="text" name="skills"
+                           class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                           placeholder="e.g. Mason, Plumber, Electrician, Carpenter">
                 </div>
 
                 <div>
@@ -191,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 <button type="submit"
                          class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-4 px-4 rounded-xl transition-colors mt-4">
-                    Create Account
+                    Register as Fundi
                 </button>
 
                 <p class="text-center text-gray-400 text-sm mt-6">
