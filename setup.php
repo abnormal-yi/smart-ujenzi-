@@ -141,6 +141,10 @@ try {
             $pdo->exec("ALTER TABLE users ADD COLUMN skills TEXT DEFAULT ''");
             out("  [OK] Added skills column to users", $isCLI);
         }
+        if (!in_array('approved', $cols)) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN approved TINYINT(1) DEFAULT 1");
+            out("  [OK] Added approved column to users", $isCLI);
+        }
 
         out("", $isCLI);
         out("[OK] Fix complete!", $isCLI);

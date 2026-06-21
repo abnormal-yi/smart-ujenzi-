@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_fundi'])) {
 }
 
 $myProjects = runQuery("SELECT id, name FROM projects WHERE project_manager_id = ?", [$userId]);
-$fundis = runQuery("SELECT id, name FROM users WHERE role = 'fundi'");
+$fundis = runQuery("SELECT id, name, skills FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name");
 $tasks = runQuery("SELECT t.*, p.name as project_name, u.name as fundi_name FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN users u ON t.fundi_id = u.id WHERE p.project_manager_id = ? ORDER BY t.deadline", [$userId]);
 ?>
 <?php if (isset($success)): ?>

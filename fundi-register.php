@@ -58,9 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills) VALUES (?, ?, ?, ?, ?, ?)');
+            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills, approved) VALUES (?, ?, ?, ?, ?, ?, 0)');
             $stmt->execute([$name, $email, $hash, 'fundi', $location, $skills]);
-            $success = 'Fundi account created! <a href="login.php" class="underline">Log in here</a>';
+            $success = 'Fundi account created! Your account is pending approval. A project manager will approve your account soon. <a href="login.php" class="underline">Log in</a> to check status.';
         }
     }
 }

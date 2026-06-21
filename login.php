@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
+        if ($user['role'] === 'fundi' && empty($user['approved'])) {
+            $error = 'Your account is pending approval. Please wait for a project manager to approve your registration.';
+        } else {
         $deviceToken = getDeviceToken();
 
         if (isKnownDevice($user['id'], $deviceToken)) {
@@ -54,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['role'] = $user['role'];
             redirect('dashboard.php');
+        }
         }
     } else {
         $error = 'Invalid email or password';

@@ -7,7 +7,7 @@ require_once __DIR__ . '/../includes/header.php';
 $userId = $_SESSION['user_id'];
 
 $projectCount = runQuery("SELECT COUNT(*) as c FROM projects WHERE project_manager_id = ?", [$userId])[0]['c'];
-$pendingRequests = 0;
+$pendingRequests = runQuery("SELECT COUNT(*) as c FROM users WHERE role = 'fundi' AND approved = 0")[0]['c'];
 $tasksDue = runQuery("SELECT COUNT(*) as c FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.project_manager_id = ? AND t.deadline < CURDATE() AND t.status != 'Completed'", [$userId])[0]['c'];
 
 $myProjects = runQuery("SELECT * FROM projects WHERE project_manager_id = ? ORDER BY status, start_date DESC", [$userId]);
@@ -78,6 +78,12 @@ $myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_na
                 </table>
             </div>
         <?php endif; ?>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
+        <a href="fundi-approve.php" class="inline-block w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-6 py-3 rounded-xl transition-colors">
+            Manage Fundi Approvals (<?= $pendingRequests ?> pending)
+        </a>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
