@@ -1,4 +1,8 @@
 <?php
+if (isset($_GET['debug'])) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+}
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/functions.php';
 
@@ -12,12 +16,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
-    $stmt = getDB()->prepare('SELECT * FROM users WHERE email = ?');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    try {
+        $db = getDB();
+    } catch (Exception $e) {
+        $error = 'DB error: ' . $e->getMessage();
+    }
 
-    if ($user && password_verify($password, $user['password'])) {
-        if ($user['role'] === 'fundi' && empty($user['approved'])) {
+    if (empty($error)) {
+        $stmt = $db->prepare('SELECT * FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            $error = 'No user found with that email';
+        } elseif (!password_verify($password, $user['password'])) {
+            $error = 'Password does not match stored hash';
+        } elseif ($user['role'] === 'fundi' && empty($user['approved'])) {
             $error = 'Your account is pending approval. Please wait for a project manager to approve your registration.';
         } else {
             registerDevice($user['id'], getDeviceToken());
@@ -27,8 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role'] = $user['role'];
             redirect('dashboard.php');
         }
-    } else {
-        $error = 'Invalid email or password';
     }
 }
 ?>
