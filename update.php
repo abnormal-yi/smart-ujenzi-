@@ -13,6 +13,10 @@ $files = [
     'fundi-register.php'   => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/fundi-register.php',
     'index.php'            => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/index.php',
     'setup.php'            => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/setup.php',
+    'dashboard.php'        => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/dashboard.php',
+    'pm/dashboard.php'     => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/pm/dashboard.php',
+    'pm/fundi-approve.php' => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/pm/fundi-approve.php',
+    'includes/functions.php' => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/includes/functions.php',
 ];
 
 $base = __DIR__;
