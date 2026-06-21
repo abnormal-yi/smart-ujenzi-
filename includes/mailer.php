@@ -10,9 +10,11 @@ function sendEmail(string $to, string $subject, string $body): bool {
     $from     = defined('SMTP_FROM') ? SMTP_FROM : 'noreply@smartujenzi.com';
     $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'SmartUjenzi';
 
-    // 1: Try SMTP
-    $mail = new PHPMailer(true);
-    try {
+    $methods = [];
+
+    // 1: SMTP via configured host
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        $mail = new PHPMailer(true);
         $mail->isSMTP();
         $mail->Host       = defined('SMTP_HOST') ? SMTP_HOST : 'localhost';
         $mail->SMTPAuth   = true;
@@ -20,9 +22,8 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : '';
         $port = defined('SMTP_PORT') ? SMTP_PORT : 587;
         $mail->SMTPSecure = $port == 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = $port;
+        $mail->Port       = (int)$port;
         $mail->Timeout    = 5;
-        $mail->SMTPKeepAlive = false;
         $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
         $mail->isHTML(true);
@@ -30,51 +31,92 @@ function sendEmail(string $to, string $subject, string $body): bool {
         $mail->Body    = $body;
         $mail->send();
         return true;
-    } catch (Exception $e) {
-        error_log("MAIL: SMTP failed: " . $mail->ErrorInfo);
-    }
+    };
 
-    // 2: Try sendmail binary directly
-    $mail3 = new PHPMailer(true);
-    try {
-        $mail3->isSendmail();
-        $mail3->setFrom($from, $fromName);
-        $mail3->addAddress($to);
-        $mail3->isHTML(true);
-        $mail3->Subject = $subject;
-        $mail3->Body    = $body;
-        $mail3->send();
+    // 2: SMTP via localhost:25 (no auth — cPanel Exim accepts local)
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'localhost';
+        $mail->SMTPAuth   = false;
+        $mail->Port       = 25;
+        $mail->Timeout    = 5;
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
         return true;
-    } catch (Exception $e) {
-        error_log("MAIL: sendmail failed: " . $mail3->ErrorInfo);
-    }
+    };
 
-    // 3: Try PHP mail() via PHPMailer
-    $mail2 = new PHPMailer(true);
-    try {
-        $mail2->isMail();
-        $mail2->setFrom($from, $fromName);
-        $mail2->addAddress($to);
-        $mail2->isHTML(true);
-        $mail2->Subject = $subject;
-        $mail2->Body    = $body;
-        $mail2->send();
+    // 3: SMTP via localhost:587 with auth (Dovecot SASL)
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'localhost';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = defined('SMTP_USER') ? SMTP_USER : $from;
+        $mail->Password   = defined('SMTP_PASS') ? SMTP_PASS : '';
+        $mail->Port       = 587;
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Timeout    = 5;
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
         return true;
-    } catch (Exception $e) {
-        error_log("MAIL: mail() failed: " . $mail2->ErrorInfo);
-    }
+    };
 
-    // 4: Try direct mail() with -f flag (required by cPanel)
-    try {
+    // 4: sendmail binary
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        $mail = new PHPMailer(true);
+        $mail->isSendmail();
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+        return true;
+    };
+
+    // 5: PHP mail() via PHPMailer
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        $mail = new PHPMailer(true);
+        $mail->isMail();
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+        return true;
+    };
+
+    // 6: Direct mail() with -f for cPanel
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
         $headers = "From: $fromName <$from>\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         $headers .= "Return-Path: <$from>\r\n";
-        $result = mail($to, $subject, $body, $headers, "-f $from");
+        $result = @mail($to, $subject, $body, $headers, "-f $from");
         if ($result) return true;
-        error_log("MAIL: direct mail() returned false");
-    } catch (\Throwable $e) {
-        error_log("MAIL: direct mail() exception: " . $e->getMessage());
+        return false;
+    };
+
+    foreach ($methods as $i => $method) {
+        try {
+            if ($method()) return true;
+        } catch (Exception $e) {
+            $lastError = $e->getMessage();
+            error_log("MAIL: method " . ($i+1) . " failed: " . $lastError);
+        } catch (\Throwable $e) {
+            $lastError = $e->getMessage();
+            error_log("MAIL: method " . ($i+1) . " exception: " . $lastError);
+        }
     }
 
     return false;

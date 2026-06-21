@@ -44,21 +44,30 @@ if ($sock) {
 }
 echo "\n";
 
-// Test 3: PHP mail() function
-echo "--- Test 3: PHP mail() function ---\n";
+// Test 3: PHP mail() function to EXTERNAL address (your Gmail)
+echo "--- Test 3: PHP mail() to hoseaayub322@gmail.com ---\n";
 if (function_exists('mail')) {
     echo "mail() exists\n";
-    $testTo = $from;
+    $testTo = 'hoseaayub322@gmail.com';
     $headers = "From: $fromName <$from>\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n";
-    $sent = @mail($testTo, 'Test from SmartUjenzi', '<h2>Test</h2><p>If you see this, PHP mail() works!</p>', $headers);
-    echo $sent ? "MAIL SENT to $testTo\n" : "mail() returned false\n";
+    $headers .= "Return-Path: <$from>\r\n";
+    $sent = @mail($testTo, 'Test from SmartUjenzi', '<h2>Test</h2><p>If you see this, PHP mail() works!</p>', $headers, "-f $from");
+    echo $sent ? "mail() returned true (handed to MTA)\n" : "mail() returned false\n";
 } else {
     echo "mail() is DISABLED\n";
 }
 echo "\n";
 
-// Test 4: PHPMailer SMTP
-echo "--- Test 4: PHPMailer SMTP ---\n";
+// Test 4: mail() to your own from address
+echo "--- Test 4: PHP mail() to $from ---\n";
+$headers2 = "From: $fromName <$from>\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n";
+$headers2 .= "Return-Path: <$from>\r\n";
+$sent2 = @mail($from, 'Test to self', '<h2>Test</h2><p>Local delivery test</p>', $headers2, "-f $from");
+echo $sent2 ? "mail() returned true\n" : "mail() returned false\n";
+echo "\n";
+
+// Test 5: PHPMailer SMTP via configured host
+echo "--- Test 5: PHPMailer SMTP ($host:$port) ---\n";
 $mail = new PHPMailer(true);
 try {
     $mail->isSMTP();
@@ -69,21 +78,20 @@ try {
     $mail->Port = $port;
     $mail->SMTPSecure = $port == 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Timeout = 5;
-    $mail->SMTPKeepAlive = false;
     $mail->setFrom($from, $fromName);
-    $mail->addAddress($from);
+    $mail->addAddress('hoseaayub322@gmail.com');
     $mail->isHTML(true);
     $mail->Subject = 'SMTP Test';
     $mail->Body = '<p>SMTP works</p>';
     $mail->send();
-    echo "SMTP SENT via PHPMailer\n";
+    echo "SENT via SMTP\n";
 } catch (Exception $e) {
-    echo "SMTP FAILED: " . $mail->ErrorInfo . "\n";
+    echo "FAILED: " . $mail->ErrorInfo . "\n";
 }
 echo "\n";
 
-// Test 5: Try localhost:25 without auth (common cPanel)
-echo "--- Test 5: localhost:25 no auth ---\n";
+// Test 6: PHPMailer localhost:25 no auth (to external)
+echo "--- Test 6: localhost:25 no auth (to Gmail) ---\n";
 $mail2 = new PHPMailer(true);
 try {
     $mail2->isSMTP();
@@ -92,14 +100,38 @@ try {
     $mail2->Port = 25;
     $mail2->Timeout = 5;
     $mail2->setFrom($from, $fromName);
-    $mail2->addAddress($from);
+    $mail2->addAddress('hoseaayub322@gmail.com');
     $mail2->isHTML(true);
     $mail2->Subject = 'Localhost Test';
     $mail2->Body = '<p>Localhost works</p>';
     $mail2->send();
-    echo "localhost:25 SENT\n";
+    echo "SENT via localhost:25\n";
 } catch (Exception $e) {
-    echo "localhost:25 FAILED: " . $mail2->ErrorInfo . "\n";
+    echo "FAILED: " . $mail2->ErrorInfo . "\n";
+}
+echo "\n";
+
+// Test 7: PHPMailer localhost:587 with auth
+echo "--- Test 7: localhost:587 with auth (to Gmail) ---\n";
+$mail3 = new PHPMailer(true);
+try {
+    $mail3->isSMTP();
+    $mail3->Host = 'localhost';
+    $mail3->SMTPAuth = true;
+    $mail3->Username = $user;
+    $mail3->Password = $pass;
+    $mail3->Port = 587;
+    $mail3->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $mail3->Timeout = 5;
+    $mail3->setFrom($from, $fromName);
+    $mail3->addAddress('hoseaayub322@gmail.com');
+    $mail3->isHTML(true);
+    $mail3->Subject = 'Localhost 587 Test';
+    $mail3->Body = '<p>Localhost 587 works</p>';
+    $mail3->send();
+    echo "SENT via localhost:587\n";
+} catch (Exception $e) {
+    echo "FAILED: " . $mail3->ErrorInfo . "\n";
 }
 
 echo "\n=== Diagnostic Complete ===";
