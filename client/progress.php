@@ -6,10 +6,10 @@ require_once __DIR__ . '/../includes/header.php';
 
 $userId = $_SESSION['user_id'];
 
-$myProjects = runQuery('SELECT * FROM projects WHERE customer_id = ? ORDER BY created_at DESC', [$userId]);
-$payments = runQuery('SELECT p.*, pr.name as project_name FROM payments p JOIN projects pr ON p.project_id = pr.id WHERE pr.customer_id = ? ORDER BY p.payment_date DESC', [$userId]);
-$media = runQuery('SELECT pm.*, u.name as uploaded_by_name, pr.name as project_name, t.name as task_name FROM project_media pm JOIN users u ON pm.uploaded_by = u.id JOIN projects pr ON pm.project_id = pr.id LEFT JOIN tasks t ON pm.task_id = t.id WHERE pr.customer_id = ? ORDER BY pm.created_at DESC', [$userId]);
-$allTasks = runQuery('SELECT t.*, pr.name as project_name FROM tasks t JOIN projects pr ON t.project_id = pr.id WHERE pr.customer_id = ? ORDER BY t.deadline ASC', [$userId]);
+$myProjects = runQuery('SELECT * FROM projects WHERE customer_id = ? ORDER BY id DESC', [$userId]);
+$payments = runQuery('SELECT p.*, pr.name as project_name FROM payments p JOIN projects pr ON p.project_id = pr.id WHERE pr.customer_id = ? ORDER BY p.id DESC', [$userId]);
+$media = runQuery('SELECT pm.*, u.name as uploaded_by_name, pr.name as project_name, t.name as task_name FROM project_media pm JOIN users u ON pm.uploaded_by = u.id JOIN projects pr ON pm.project_id = pr.id LEFT JOIN tasks t ON pm.task_id = t.id WHERE pr.customer_id = ? ORDER BY pm.id DESC', [$userId]);
+$allTasks = runQuery('SELECT t.*, pr.name as project_name FROM tasks t JOIN projects pr ON t.project_id = pr.id WHERE pr.customer_id = ? ORDER BY t.id ASC', [$userId]);
 
 $projectStatusColors = ['Ongoing' => 'bg-blue-500', 'Pending' => 'bg-yellow-500', 'In Progress' => 'bg-indigo-500', 'Completed' => 'bg-green-500', 'On Hold' => 'bg-red-500'];
 $taskStatusColors = ['In Progress' => 'bg-indigo-500', 'Completed' => 'bg-green-500', 'Not Started' => 'bg-gray-400', 'On Hold' => 'bg-red-400'];

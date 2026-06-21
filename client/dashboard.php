@@ -5,13 +5,40 @@ requireRole(['client']);
 require_once __DIR__ . '/../includes/header.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_request'])) {
+    $location = trim(implode(', ', array_filter([$_POST['region'] ?? '', $_POST['district'] ?? '', $_POST['ward'] ?? ''])));
     runQuery("INSERT INTO customer_requests (customer_id, company_id, project_type, location, description) VALUES (?,?,?,?,?)",
-        [$_SESSION['user_id'], $_POST['company_id'], $_POST['project_type'], $_POST['location'], $_POST['description']]);
+        [$_SESSION['user_id'], $_POST['company_id'], $_POST['project_type'], $location, $_POST['description']]);
     $success = 'Request submitted! Admin will review shortly.';
 }
 
 $companies = runQuery("SELECT * FROM companies ORDER BY verified DESC, rating DESC");
 $gradients = ['from-blue-100 to-blue-50', 'from-green-100 to-green-50', 'from-amber-100 to-amber-50', 'from-purple-100 to-purple-50', 'from-rose-100 to-rose-50'];
+
+$cacheFile = sys_get_temp_dir() . '/smartujenzi-location-cache.json';
+if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
+    $cached = file_get_contents($cacheFile);
+    $parts = explode("\n\n\n", $cached, 3);
+    $jsonRegions = $parts[0] ?? '[]';
+    $jsonDistricts = $parts[1] ?? '{}';
+    $jsonWards = $parts[2] ?? '{}';
+} else {
+    try {
+        $db = getDB();
+        $regions = $db->query("SELECT name FROM regions ORDER BY id")->fetchAll(PDO::FETCH_COLUMN);
+        $distRows = $db->query("SELECT d.name AS district, r.name AS region FROM districts d JOIN regions r ON r.id = d.region_id ORDER BY d.id")->fetchAll(PDO::FETCH_ASSOC);
+        $wardRows = $db->query("SELECT d.name AS district, w.name AS ward FROM wards w JOIN districts d ON d.id = w.district_id ORDER BY d.id, w.name")->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $regions = []; $distRows = []; $wardRows = [];
+    }
+    $distMap = [];
+    foreach ($distRows as $d) $distMap[$d['district']] = $d['region'];
+    $wardMap = [];
+    foreach ($wardRows as $w) $wardMap[$w['district']][] = $w['ward'];
+    $jsonRegions = json_encode($regions, JSON_UNESCAPED_UNICODE);
+    $jsonDistricts = json_encode($distMap, JSON_UNESCAPED_UNICODE);
+    $jsonWards = json_encode($wardMap, JSON_UNESCAPED_UNICODE);
+    @file_put_contents($cacheFile, $jsonRegions . "\n\n\n" . $jsonDistricts . "\n\n\n" . $jsonWards);
+}
 ?>
 
 <?php if (isset($success)): ?>
@@ -106,9 +133,22 @@ $gradients = ['from-blue-100 to-blue-50', 'from-green-100 to-green-50', 'from-am
                        class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                <input type="text" name="location" required placeholder="e.g. Dar es Salaam, Kinondoni"
-                       class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <select name="region" id="req_region" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500 bg-white">
+                    <option value="">Select Region</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">District</label>
+                <select name="district" id="req_district" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500 bg-white">
+                    <option value="">Select District</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ward</label>
+                <select name="ward" id="req_ward" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:border-yellow-500 bg-white">
+                    <option value="">Select Ward</option>
+                </select>
             </div>
 
             <div>
@@ -122,6 +162,45 @@ $gradients = ['from-blue-100 to-blue-50', 'from-green-100 to-green-50', 'from-am
 </div>
 
 <script>
+var TZ_REGIONS = <?= $jsonRegions ?>;
+var TZ_DISTRICTS = <?= $jsonDistricts ?>;
+var TZ_WARDS = <?= $jsonWards ?>;
+
+document.addEventListener('DOMContentLoaded', function() {
+    var RS = document.getElementById('req_region');
+    var DS = document.getElementById('req_district');
+    var WS = document.getElementById('req_ward');
+    if (!RS) return;
+    var RD = TZ_DISTRICTS || {}, WD = TZ_WARDS || {};
+    function fill(sel, arr, ph) {
+        sel.innerHTML = '<option value="">' + ph + '</option>';
+        arr.forEach(function(x) {
+            var o = document.createElement('option');
+            o.value = x; o.textContent = x; sel.appendChild(o);
+        });
+    }
+    function getDistricts(region) {
+        var a = [];
+        for (var d in RD) { if (RD[d] === region) a.push(d); }
+        return a.sort();
+    }
+    fill(RS, TZ_REGIONS || [], 'Select Region');
+    RS.addEventListener('change', function() {
+        var v = this.value;
+        DS.innerHTML = '<option value="">Select District</option>';
+        WS.innerHTML = '<option value="">Select Ward</option>';
+        DS.disabled = !v;
+        WS.disabled = !v;
+        if (v) fill(DS, getDistricts(v), 'Select District');
+    });
+    DS.addEventListener('change', function() {
+        var v = this.value;
+        WS.innerHTML = '<option value="">Select Ward</option>';
+        WS.disabled = !v;
+        if (v && WD[v]) fill(WS, WD[v].sort(), 'Select Ward');
+    });
+});
+
 const searchInput = document.getElementById('contractor-search');
 const cityFilter = document.getElementById('city-filter');
 const contractorList = document.getElementById('contractor-list');

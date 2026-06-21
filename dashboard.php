@@ -301,7 +301,10 @@ if ($role === 'super_admin' || $role === 'admin'):
     $myRequests = runQuery("SELECT * FROM customer_requests WHERE customer_id = ? ORDER BY id DESC", [$userId]);
     $pendingRequests = count(array_filter($myRequests, fn($r) => $r['status'] === 'Pending'));
     $companyCount = runQuery("SELECT COUNT(*) as cnt FROM companies")[0]['cnt'] ?? 0;
-    $fundiCount = runQuery("SELECT COUNT(*) as cnt FROM users WHERE role = 'fundi' AND approved = 1")[0]['cnt'] ?? 0;
+    $fundiCount = 0;
+    try {
+        $fundiCount = runQuery("SELECT COUNT(*) as cnt FROM users WHERE role = 'fundi' AND approved = 1")[0]['cnt'] ?? 0;
+    } catch (Exception $e) {}
     $isNew = empty($myProjects) && empty($myRequests);
 ?>
 <?php if ($isNew): ?>
