@@ -64,13 +64,13 @@ function sendEmail(string $to, string $subject, string $body): bool {
         error_log("MAIL: mail() failed: " . $mail2->ErrorInfo);
     }
 
-    // 4: Try direct mail() as last resort
+    // 4: Try direct mail() with -f flag (required by cPanel)
     try {
-        ini_set('sendmail_from', $from);
         $headers = "From: $fromName <$from>\r\n";
         $headers .= "MIME-Version: 1.0\r\n";
         $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $result = mail($to, $subject, $body, $headers);
+        $headers .= "Return-Path: <$from>\r\n";
+        $result = mail($to, $subject, $body, $headers, "-f $from");
         if ($result) return true;
         error_log("MAIL: direct mail() returned false");
     } catch (\Throwable $e) {
