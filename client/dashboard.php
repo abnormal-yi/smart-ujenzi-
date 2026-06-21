@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_request'])) {
 
 $companies = runQuery("SELECT * FROM companies ORDER BY verified DESC, rating DESC");
 $gradients = ['from-blue-100 to-blue-50', 'from-green-100 to-green-50', 'from-amber-100 to-amber-50', 'from-purple-100 to-purple-50', 'from-rose-100 to-rose-50'];
+$cities = array_unique(array_filter(array_map(fn($c) => trim($c['city'] ?? ''), $companies)));
+sort($cities);
 
 $cacheFile = sys_get_temp_dir() . '/smartujenzi-location-cache.json';
 if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
@@ -50,8 +52,9 @@ if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
            class="flex-1 px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-yellow-500 transition-colors">
     <select id="city-filter" class="px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:border-yellow-500 transition-colors">
         <option value="all">All Cities</option>
-        <option value="Arusha">Arusha</option>
-        <option value="Dar es Salaam">Dar es Salaam</option>
+        <?php foreach ($cities as $city): ?>
+        <option value="<?= htmlspecialchars($city) ?>"><?= htmlspecialchars($city) ?></option>
+        <?php endforeach; ?>
     </select>
 </div>
 
@@ -206,14 +209,14 @@ const cityFilter = document.getElementById('city-filter');
 const contractorList = document.getElementById('contractor-list');
 
 function filterContractors() {
-    const search = searchInput.value.toLowerCase();
+    const search = searchInput.value.toLowerCase().trim();
     const city = cityFilter.value;
     const cards = contractorList.querySelectorAll('[data-city]');
     cards.forEach(card => {
-        const cardCity = card.dataset.city;
-        const cardName = card.dataset.name.toLowerCase();
+        const cardCity = (card.dataset.city || '').trim();
+        const cardName = (card.dataset.name || '').toLowerCase();
         const cardText = card.textContent.toLowerCase();
-        const matchesCity = city === 'all' || cardCity === city;
+        const matchesCity = city === 'all' || cardCity.toLowerCase() === city.toLowerCase();
         const matchesSearch = search === '' || cardName.includes(search) || cardText.includes(search);
         card.style.display = matchesCity && matchesSearch ? '' : 'none';
     });
