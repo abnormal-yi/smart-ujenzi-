@@ -299,9 +299,28 @@ if ($role === 'super_admin' || $role === 'admin'):
 <?php elseif ($role === 'client'):
     $myProjects = runQuery("SELECT * FROM projects WHERE customer_id = ?", [$userId]);
     $myRequests = runQuery("SELECT * FROM customer_requests WHERE customer_id = ? ORDER BY id DESC", [$userId]);
-    $companyInfo = runQuery("SELECT * FROM companies WHERE id = (SELECT company_id FROM users WHERE id = ?)", [$userId])[0] ?? null;
     $pendingRequests = count(array_filter($myRequests, fn($r) => $r['status'] === 'Pending'));
+    $companyCount = runQuery("SELECT COUNT(*) as cnt FROM companies")[0]['cnt'] ?? 0;
+    $fundiCount = runQuery("SELECT COUNT(*) as cnt FROM users WHERE role = 'fundi' AND approved = 1")[0]['cnt'] ?? 0;
+    $isNew = empty($myProjects) && empty($myRequests);
 ?>
+<?php if ($isNew): ?>
+<div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-sm p-8 mb-8 text-white">
+    <h2 class="text-2xl font-bold mb-2">Karibu, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
+    <p class="text-blue-100 mb-6">Find trusted contractors and fundi for your construction projects in Tanzania.</p>
+    <div class="flex flex-wrap gap-4">
+        <a href="client/dashboard.php" class="inline-flex items-center gap-2 bg-white text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            Browse Contractors
+        </a>
+        <a href="client/requests.php" class="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-400 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"/></svg>
+            Submit a Request
+        </a>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center justify-between">
@@ -338,34 +357,45 @@ if ($role === 'super_admin' || $role === 'admin'):
     </div>
 </div>
 
-<?php if ($companyInfo): ?>
+<?php if ($companyCount > 0 && $fundiCount > 0): ?>
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-    <h3 class="text-lg font-bold text-gray-800 mb-4">My Company</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <p class="text-sm text-gray-500">Company Name</p>
-            <p class="text-gray-800 font-medium"><?= htmlspecialchars($companyInfo['name']) ?></p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-800"><?= $companyCount ?></p>
+                <p class="text-sm text-gray-500">Available Contractors</p>
+            </div>
         </div>
-        <div>
-            <p class="text-sm text-gray-500">Email</p>
-            <p class="text-gray-800 font-medium"><?= htmlspecialchars($companyInfo['email'] ?? 'N/A') ?></p>
-        </div>
-        <div>
-            <p class="text-sm text-gray-500">Phone</p>
-            <p class="text-gray-800 font-medium"><?= htmlspecialchars($companyInfo['phone'] ?? 'N/A') ?></p>
-        </div>
-        <div>
-            <p class="text-sm text-gray-500">Location</p>
-            <p class="text-gray-800 font-medium"><?= htmlspecialchars($companyInfo['location'] ?? 'N/A') ?></p>
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center text-green-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-gray-800"><?= $fundiCount ?></p>
+                <p class="text-sm text-gray-500">Available Fundi</p>
+            </div>
         </div>
     </div>
 </div>
 <?php endif; ?>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-    <h3 class="text-lg font-bold text-gray-800 mb-4">My Requests</h3>
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-800">My Requests</h3>
+        <a href="client/requests.php" class="text-sm text-blue-600 hover:underline">View All</a>
+    </div>
     <?php if (empty($myRequests)): ?>
-        <p class="text-gray-500 text-sm">No requests submitted yet.</p>
+        <div class="text-center py-8">
+            <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <p class="text-gray-500 mb-2">No requests submitted yet.</p>
+            <p class="text-sm text-gray-400 mb-4">Submit a request to a contractor to get started.</p>
+            <a href="client/dashboard.php" class="inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition">
+                Browse Contractors
+            </a>
+        </div>
     <?php else: ?>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
