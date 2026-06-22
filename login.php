@@ -34,12 +34,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($user['role'] === 'fundi' && empty($user['approved'])) {
             $error = 'Your account is pending approval. Please wait for a project manager to approve your registration.';
         } else {
-            registerDevice($user['id'], getDeviceToken());
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['name'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['role'] = $user['role'];
-            redirect('dashboard.php');
+            $deviceToken = getDeviceToken();
+
+            if (isKnownDevice($user['id'], $deviceToken)) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_name'] = $user['name'];
+                $_SESSION['user_email'] = $user['email'];
+                $_SESSION['role'] = $user['role'];
+                redirect('dashboard.php');
+            } else {
+                $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+                executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$user['id'], $code]);
+
+                require_once __DIR__ . '/includes/mailer.php';
+                $sent = sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
+                    "<h2>OTP Verification</h2>
+                     <p>Hello <strong>" . htmlspecialchars($user['name']) . "</strong>,</p>
+                     <p>Your verification code is:</p>
+                     <h1 style='font-size: 32px; letter-spacing: 8px; text-align: center; background: #f3f4f6; padding: 16px; border-radius: 8px;'>" . $code . "</h1>
+                     <p>This code expires in 5 minutes.</p>
+                     <p>If you did not attempt to log in, please ignore this email.</p>");
+
+                if ($sent) {
+                    $_SESSION['otp_user_id'] = $user['id'];
+                    $_SESSION['otp_user_name'] = $user['name'];
+                    $_SESSION['otp_user_email'] = $user['email'];
+                    $_SESSION['otp_role'] = $user['role'];
+                    redirect('otp-verify.php');
+                }
+
+                $_SESSION['otp_code_debug'] = $code;
+                $_SESSION['otp_user_id'] = $user['id'];
+                $_SESSION['otp_user_name'] = $user['name'];
+                $_SESSION['otp_user_email'] = $user['email'];
+                $_SESSION['otp_role'] = $user['role'];
+                redirect('otp-verify.php');
+            }
         }
     }
 }
