@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills) VALUES (?, ?, ?, ?, ?, ?)');
             $stmt->execute([$name, $email, $hash, 'fundi', $location, $skills]);
             $userId = getDB()->lastInsertId();
+            logActivity('user_registered', 'user', $userId, "New fundi registration: $name ($email)", 'info');
 
             $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$userId, $code]);
