@@ -18,8 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['fun
     redirect('fundi-approve.php');
 }
 
-$pendingFundis = runQuery("SELECT id, name, email, skills, location, created_at FROM users WHERE role = 'fundi' AND approved = 0 ORDER BY id DESC");
-$approvedFundis = runQuery("SELECT id, name, email, skills, location FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name");
+$pendingFundis = [];
+$approvedFundis = [];
+try {
+    $pendingFundis = runQuery("SELECT id, name, email, skills, location FROM users WHERE role = 'fundi' AND approved = 0 ORDER BY id DESC");
+    $approvedFundis = runQuery("SELECT id, name, email, skills, location FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name");
+} catch (Exception $e) {
+    $_SESSION['flash'] = ['type' => 'error', 'message' => 'Database error: ' . $e->getMessage()];
+}
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 ?>
