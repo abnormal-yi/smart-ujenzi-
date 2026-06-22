@@ -29,10 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (!$user) {
             $error = 'No user found with that email';
+            logActivity('login_failed', 'user', null, "Failed login attempt for: $email", 'warning');
         } elseif (!password_verify($password, $user['password'])) {
             $error = 'Password does not match stored hash';
+            logActivity('login_failed', 'user', null, "Wrong password for: $email", 'warning');
         } elseif ($user['role'] === 'fundi' && empty($user['approved'])) {
-            $error = 'Your account is pending approval. Please wait for a project manager to approve your registration.';
+            $error = 'Your account has not been verified. Please check your email for the verification code or <a href="fundi-register.php" class="underline">register again</a>.';
+            logActivity('login_blocked', 'user', $user['id'], "Unapproved fundi attempted login: {$user['email']}", 'warning');
         } else {
             $deviceToken = getDeviceToken();
 
@@ -41,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['name'];
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['role'] = $user['role'];
+                logActivity('login', 'user', $user['id'], 'Known device login: ' . $user['email']);
                 redirect('dashboard.php');
             } else {
                 $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
