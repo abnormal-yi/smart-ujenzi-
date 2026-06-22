@@ -35,6 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location) VALUES (?, ?, ?, ?, ?)');
                 $stmt->execute([$name, $email, $hash, $role, $location]);
+                $newId = getDB()->lastInsertId();
+                logActivity('user_registered', 'user', $newId, "New client registration: $name ($email)");
                 $success = 'Account created! <a href="login.php" class="underline">Log in here</a>';
             } catch (Exception $e) {
                 $error = 'Registration failed: ' . $e->getMessage();
