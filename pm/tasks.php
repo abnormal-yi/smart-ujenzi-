@@ -8,13 +8,15 @@ $userId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_task'])) {
     $fundiId = !empty($_POST['fundi_id']) ? (int)$_POST['fundi_id'] : null;
-    runQuery("INSERT INTO tasks (project_id, name, description, fundi_id, deadline) VALUES (?,?,?,?,?)",
+    $res = executeQuery("INSERT INTO tasks (project_id, name, description, fundi_id, deadline) VALUES (?,?,?,?,?)",
         [(int)$_POST['project_id'], $_POST['name'], $_POST['description'], $fundiId, $_POST['deadline']]);
+    logActivity('task_created', 'task', $res['id'], "PM created task: {$_POST['name']} for project #{$_POST['project_id']}");
     $success = 'Task created!';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_fundi'])) {
-    runQuery("UPDATE tasks SET fundi_id = ? WHERE id = ?", [(int)$_POST['fundi_id'], (int)$_POST['task_id']]);
+    executeQuery("UPDATE tasks SET fundi_id = ? WHERE id = ?", [(int)$_POST['fundi_id'], (int)$_POST['task_id']]);
+    logActivity('task_assigned', 'task', (int)$_POST['task_id'], "Fundi #{$_POST['fundi_id']} assigned to task #{$_POST['task_id']}");
     $success = 'Fundi assigned!';
 }
 

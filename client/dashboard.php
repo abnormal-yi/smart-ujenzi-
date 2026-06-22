@@ -6,8 +6,9 @@ require_once __DIR__ . '/../includes/header.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_request'])) {
     $location = trim(implode(', ', array_filter([$_POST['region'] ?? '', $_POST['district'] ?? '', $_POST['ward'] ?? ''])));
-    runQuery("INSERT INTO customer_requests (customer_id, company_id, project_type, location, description) VALUES (?,?,?,?,?)",
+    $res = executeQuery("INSERT INTO customer_requests (customer_id, company_id, project_type, location, description) VALUES (?,?,?,?,?)",
         [$_SESSION['user_id'], $_POST['company_id'], $_POST['project_type'], $location, $_POST['description']]);
+    logActivity('request_submitted', 'customer_request', $res['id'], "Client submitted request to company #{$_POST['company_id']}");
     $success = 'Request submitted! Admin will review shortly.';
 }
 

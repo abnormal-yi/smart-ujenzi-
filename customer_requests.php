@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_pm'])) {
     $pmId = (int)$_POST['pm_id'];
     runQuery("UPDATE customer_requests SET assigned_pm_id = ?, status = 'Reviewed' WHERE id = ?", [$pmId, $reqId]);
     runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'New request assigned to you')", [$pmId]);
+    logActivity('request_assigned', 'customer_request', $reqId, "PM #{$pmId} assigned to request #{$reqId}");
     $success = 'Project Manager assigned!';
 }
 

@@ -7,8 +7,9 @@ require_once __DIR__ . '/includes/header.php';
 
 // Handle resource creation (labor or equipment)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'create') {
-    executeQuery('INSERT INTO resources (type, name, details) VALUES (?, ?, ?)',
+    $res = executeQuery('INSERT INTO resources (type, name, details) VALUES (?, ?, ?)',
         [$_POST['type'], $_POST['name'], $_POST['details']]);
+    logActivity('resource_created', 'resource', $res['id'], "Created {$_POST['type']}: {$_POST['name']}");
     $_SESSION['flash'] = ['type' => 'success', 'message' => 'Resource added'];
     redirect('workers.php');
 }

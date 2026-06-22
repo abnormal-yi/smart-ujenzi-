@@ -52,8 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
-    executeQuery("INSERT INTO tasks (project_id, name, description, fundi_id, deadline) VALUES (?, ?, ?, ?, ?)",
+    $res = executeQuery("INSERT INTO tasks (project_id, name, description, fundi_id, deadline) VALUES (?, ?, ?, ?, ?)",
         [$_POST['project_id'], $_POST['name'], $_POST['description'], $_POST['fundi_id'] ?: null, $_POST['deadline'] ?: null]);
+    logActivity('task_created', 'task', $res['id'], "Created task: {$_POST['name']} for project #{$_POST['project_id']}");
     $success = 'Task created!';
 }
 

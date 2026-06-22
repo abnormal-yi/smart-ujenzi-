@@ -8,13 +8,14 @@ require_once __DIR__ . '/includes/header.php';
 // Handle POST actions: add new material or update stock level
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($_POST['action'] === 'create') {
-        // Insert a new material with initial quantity and low stock threshold
-        executeQuery('INSERT INTO materials (name, quantity, unit, low_stock_threshold) VALUES (?, ?, ?, ?)',
+        $res = executeQuery('INSERT INTO materials (name, quantity, unit, low_stock_threshold) VALUES (?, ?, ?, ?)',
             [$_POST['name'], (int)$_POST['quantity'], $_POST['unit'], (int)$_POST['low_stock_threshold']]);
+        logActivity('material_created', 'material', $res['id'], "Added material: {$_POST['name']}");
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Material added'];
     } elseif ($_POST['action'] === 'update_stock') {
-        // Adjust stock by adding (or subtracting if negative) the given amount
-        executeQuery('UPDATE materials SET quantity = quantity + ? WHERE id = ?', [(int)$_POST['amount'], $_POST['id']]);
+        $amt = (int)$_POST['amount'];
+        executeQuery('UPDATE materials SET quantity = quantity + ? WHERE id = ?', [$amt, $_POST['id']]);
+        logActivity('material_stock_update', 'material', (int)$_POST['id'], "Stock adjusted by {$amt} on material #{$_POST['id']}");
         $mat = runQuery('SELECT * FROM materials WHERE id = ?', [$_POST['id']]);
         // Send notification if stock has fallen to or below the low stock threshold
         if ($mat && $mat[0]['quantity'] <= $mat[0]['low_stock_threshold']) {

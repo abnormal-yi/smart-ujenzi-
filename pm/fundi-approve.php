@@ -10,9 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['fun
     $fundiId = (int)$_POST['fundi_id'];
     if ($_POST['action'] === 'approve') {
         executeQuery("UPDATE users SET approved = 1 WHERE id = ? AND role = 'fundi'", [$fundiId]);
+        logActivity('user_approved', 'user', $fundiId, "Fundi approved by {$userId}");
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Fundi approved'];
     } elseif ($_POST['action'] === 'reject') {
         executeQuery("UPDATE users SET approved = 0 WHERE id = ? AND role = 'fundi'", [$fundiId]);
+        logActivity('user_rejected', 'user', $fundiId, "Fundi rejected by {$userId}");
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Fundi rejected'];
     }
     redirect('fundi-approve.php');

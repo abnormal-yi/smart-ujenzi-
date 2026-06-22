@@ -10,11 +10,13 @@ $userId = $_SESSION['user_id'];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'create') {
-            executeQuery('INSERT INTO projects (name, description, project_manager_id, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+            $res = executeQuery('INSERT INTO projects (name, description, project_manager_id, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
                 [$_POST['name'], $_POST['description'], $_POST['project_manager_id'] ?: null, $_POST['start_date'] ?: null, $_POST['end_date'] ?: null]);
+            logActivity('project_created', 'project', $res['id'], "Created project: {$_POST['name']}");
             $_SESSION['flash'] = ['type' => 'success', 'message' => 'Project created successfully'];
         } elseif ($_POST['action'] === 'status') {
             executeQuery('UPDATE projects SET status = ? WHERE id = ?', [$_POST['status'], $_POST['id']]);
+            logActivity('project_status', 'project', (int)$_POST['id'], "Status changed to {$_POST['status']}");
             $_SESSION['flash'] = ['type' => 'success', 'message' => 'Project status updated'];
         }
         redirect('projects.php');
