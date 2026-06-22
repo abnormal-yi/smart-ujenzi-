@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/functions.php';
 
 if (isAuthenticated()) {
     redirect('dashboard.php');
@@ -58,9 +59,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Email already registered. <a href="login.php" class="underline">Log in</a>';
         } else {
             $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills, approved) VALUES (?, ?, ?, ?, ?, ?, 0)');
+            $stmt = getDB()->prepare('INSERT INTO users (name, email, password, role, location, skills) VALUES (?, ?, ?, ?, ?, ?)');
             $stmt->execute([$name, $email, $hash, 'fundi', $location, $skills]);
-            $success = 'Fundi account created! Your account is pending approval. A project manager will approve your account soon. <a href="login.php" class="underline">Log in</a> to check status.';
+            $userId = getDB()->lastInsertId();
+
+            $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$userId, $code]);
+
+            require_once __DIR__ . '/includes/mailer.php';
+            sendEmail($email, 'Verify your SmartUjenzi Fundi Account',
+                "<h2>Email Verification</h2>
+                 <p>Hello <strong>" . htmlspecialchars($name) . "</strong>,</p>
+                 <p>Your verification code is:</p>
+                 <h1 style='font-size: 32px; letter-spacing: 8px; text-align: center; background: #f3f4f6; padding: 16px; border-radius: 8px;'>" . $code . "</h1>
+                 <p>This code expires in 5 minutes.</p>
+                 <p>Enter this code to activate your fundi account.</p>");
+
+            $_SESSION['otp_user_id'] = $userId;
+            $_SESSION['otp_user_name'] = $name;
+            $_SESSION['otp_user_email'] = $email;
+            $_SESSION['otp_role'] = 'fundi';
+            redirect('otp-verify.php');
         }
     }
 }
@@ -150,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Full Name</label>
                     <input type="text" name="name" required
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                           placeholder="John Mteja">
+                           placeholder="<?= __('name.placeholder') ?>">
                 </div>
 
                 <div class="relative">

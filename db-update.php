@@ -64,7 +64,7 @@ $demoAccounts = [
     ['zainab@example.com', 'manager123', 'Admin'],
     ['steve@example.com', 'manager123', 'Project Manager'],
     ['teleza@example.com', 'manager123', 'Project Manager'],
-    ['mteja@example.com', 'manager123', 'Client'],
+        ['client@example.com', 'manager123', 'Client'],
     ['ali@example.com', 'manager123', 'Fundi'],
     ['david@example.com', 'manager123', 'Fundi'],
 ];

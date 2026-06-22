@@ -33,6 +33,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_email'] = $_SESSION['otp_user_email'];
         $_SESSION['role'] = $_SESSION['otp_role'];
 
+        if ($_SESSION['role'] === 'fundi') {
+            executeQuery("UPDATE users SET approved = 1 WHERE id = ?", [$userId]);
+        }
+
         unset($_SESSION['otp_user_id'], $_SESSION['otp_user_name'], $_SESSION['otp_user_email'], $_SESSION['otp_role']);
         redirect('dashboard.php');
     } else {

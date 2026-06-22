@@ -1,7 +1,7 @@
 <?php
-// Workers (Mafundi) & Equipment management page: add resources and assign to projects
-$pageTitle = 'Mafundi & Equipment';
 require_once __DIR__ . '/includes/functions.php';
+// Workers (Mafundi) & Equipment management page: add resources and assign to projects
+$pageTitle = __('nav.workers');
 requireRole(['admin', 'project_manager']);
 require_once __DIR__ . '/includes/header.php';
 

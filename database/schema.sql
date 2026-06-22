@@ -266,6 +266,27 @@ CREATE TABLE otp_codes (
     FOREIGN KEY(user_id) REFERENCES users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    user_name VARCHAR(255),
+    user_email VARCHAR(255),
+    user_role VARCHAR(50),
+    action VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(100),
+    entity_id INT,
+    details TEXT,
+    ip_address VARCHAR(45),
+    user_agent VARCHAR(500),
+    severity VARCHAR(20) DEFAULT 'info',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_audit_user (user_id, created_at),
+    INDEX idx_audit_action (action, created_at),
+    INDEX idx_audit_severity (severity, created_at),
+    INDEX idx_audit_ip (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ====================
 -- Seed Data
 -- ====================
@@ -278,7 +299,7 @@ INSERT INTO users (id, name, email, password, role) VALUES
 (3, 'Teleza Mkomwa', 'teleza@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'project_manager'),
 (4, 'Ali Fundi', 'ali@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'fundi'),
 (5, 'Zainab Admin', 'zainab@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'admin'),
-(6, 'John Mteja', 'mteja@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'client'),
+(6, 'John Mteja', 'client@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'client'),
 (7, 'Daud Fundi', 'david@example.com', '$2y$12$JluMmHAeFE47pAainTnIJ.VwEBXXTY4xUPrrBl29ifuL.mCjOUCFS', 'fundi');
 
 -- NCA verified contractor companies (displayed on landing page)

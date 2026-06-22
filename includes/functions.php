@@ -2,6 +2,20 @@
 // Load database configuration and session helpers
 require_once __DIR__ . '/config.php';
 
+// Load translations based on user's language preference (session or cookie)
+$langCode = $_SESSION['lang'] ?? $_COOKIE['app_lang'] ?? 'en';
+$_lang = [];
+$_langPath = __DIR__ . '/../lang/' . $langCode . '.php';
+if (file_exists($_langPath)) {
+    $_lang = require $_langPath;
+}
+
+// Translate a key — returns English fallback if key is missing
+function __(string $key): string {
+    global $_lang;
+    return $_lang[$key] ?? $key;
+}
+
 // Executes a SELECT query and returns all matching rows as an associative array
 function runQuery(string $sql, array $params = []): array {
     $stmt = getDB()->prepare($sql);
@@ -77,4 +91,19 @@ function isKnownDevice(int $userId, string $token): bool {
 
 function registerDevice(int $userId, string $token): void {
     executeQuery("INSERT INTO user_devices (user_id, device_token) VALUES (?, ?)", [$userId, $token]);
+}
+
+function logActivity(string $action, ?string $entityType = null, ?int $entityId = null, ?string $details = null, string $severity = 'info'): void {
+    $userId = $_SESSION['user_id'] ?? null;
+    $userName = $_SESSION['user_name'] ?? null;
+    $userEmail = $_SESSION['user_email'] ?? null;
+    $userRole = $_SESSION['role'] ?? null;
+    $ip = $_SERVER['REMOTE_ADDR'] ?? null;
+    $ua = $_SERVER['HTTP_USER_AGENT'] ?? null;
+    try {
+        executeQuery("INSERT INTO audit_logs (user_id, user_name, user_email, user_role, action, entity_type, entity_id, details, ip_address, user_agent, severity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [$userId, $userName, $userEmail, $userRole, $action, $entityType, $entityId, $details, $ip, $ua, $severity]);
+    } catch (Exception $e) {
+        // silently fail — logging should never break the app
+    }
 }

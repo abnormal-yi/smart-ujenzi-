@@ -202,7 +202,7 @@ try {
     out("zainab@example.com / manager123 (Admin)", $isCLI);
     out("steve@example.com / manager123 (Project Manager)", $isCLI);
     out("teleza@example.com / manager123 (Project Manager)", $isCLI);
-    out("mteja@example.com / manager123 (Client)", $isCLI);
+    out("client@example.com / manager123 (Client)", $isCLI);
     out("ali@example.com / manager123 (Fundi)", $isCLI);
     out("david@example.com / manager123 (Fundi)", $isCLI);
 

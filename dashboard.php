@@ -309,7 +309,7 @@ if ($role === 'super_admin' || $role === 'admin'):
 ?>
 <?php if ($isNew): ?>
 <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl shadow-sm p-8 mb-8 text-white">
-    <h2 class="text-2xl font-bold mb-2">Karibu, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
+    <h2 class="text-2xl font-bold mb-2"><?= __('dashboard.welcome') ?>, <?= htmlspecialchars($_SESSION['user_name']) ?>!</h2>
     <p class="text-blue-100 mb-6">Find trusted contractors and fundi for your construction projects in Tanzania.</p>
     <div class="flex flex-wrap gap-4">
         <a href="client/dashboard.php" class="inline-flex items-center gap-2 bg-white text-blue-700 px-6 py-3 rounded-lg font-medium hover:bg-blue-50 transition">

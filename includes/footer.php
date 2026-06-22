@@ -30,6 +30,11 @@ document.addEventListener('click', function(e) {
         dropdown.classList.add('hidden');
     }
 });
+
+// Toggles language between English and Swahili
+function toggleLang() {
+    document.getElementById('lang-form').submit();
+}
 </script>
 </body>
 </html>

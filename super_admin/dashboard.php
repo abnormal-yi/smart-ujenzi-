@@ -89,7 +89,7 @@ $recentUsers = runQuery("SELECT id, name, email, role FROM users ORDER BY id DES
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm text-gray-500">Mafundi</p>
+                <p class="text-sm text-gray-500"><?= __('sa.workers') ?></p>
                 <p class="text-3xl font-bold text-gray-800 mt-1"><?= $stats['total_fundi'] ?></p>
             </div>
             <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600">
