@@ -7,13 +7,19 @@ function sendEmail(string $to, string $subject, string $body): bool {
     $methods = [];
 
     $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
-        $headers = "From: $fromName <$from>\r\n";
-        $headers .= "MIME-Version: 1.0\r\n";
-        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
-        $headers .= "Return-Path: <$from>\r\n";
-        $result = @mail($to, $subject, $body, $headers, "-f $from");
-        if ($result) return true;
-        return false;
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'localhost';
+        $mail->SMTPAuth   = false;
+        $mail->Port       = 25;
+        $mail->Timeout    = 5;
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+        return true;
     };
 
     $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
@@ -41,19 +47,13 @@ function sendEmail(string $to, string $subject, string $body): bool {
     };
 
     $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host       = 'localhost';
-        $mail->SMTPAuth   = false;
-        $mail->Port       = 25;
-        $mail->Timeout    = 5;
-        $mail->setFrom($from, $fromName);
-        $mail->addAddress($to);
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $body;
-        $mail->send();
-        return true;
+        $headers = "From: $fromName <$from>\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        $headers .= "Return-Path: <$from>\r\n";
+        $result = @mail($to, $subject, $body, $headers, "-f $from");
+        if ($result) return true;
+        return false;
     };
 
     foreach ($methods as $i => $method) {
