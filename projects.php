@@ -152,6 +152,11 @@ $canCreate = in_array($role, ['super_admin', 'admin', 'project_manager']);
 <script>
 function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('form').forEach(f => {
+    f.addEventListener('submit', () => {
+        f.querySelector('button[type="submit"]')?.setAttribute('disabled', 'disabled');
+    });
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

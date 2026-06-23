@@ -63,15 +63,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$user['id'], $code]);
 
                 require_once __DIR__ . '/includes/mailer.php';
-                $sent = sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
+                $mailResult = sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
                     "<h2>OTP Verification</h2>
                      <p>Hello <strong>" . htmlspecialchars($user['name']) . "</strong>,</p>
                      <p>Your verification code is:</p>
                      <h1 style='font-size: 32px; letter-spacing: 8px; text-align: center; background: #f3f4f6; padding: 16px; border-radius: 8px;'>" . $code . "</h1>
                      <p>This code expires in 5 minutes.</p>
                      <p>If you did not attempt to log in, please ignore this email.</p>");
+                error_log("OTP send to {$user['email']}: " . ($mailResult ? 'SUCCESS' : 'FAILED'));
 
-                if ($sent) {
+                if ($mailResult) {
                     $_SESSION['otp_user_id'] = $user['id'];
                     $_SESSION['otp_user_name'] = $user['name'];
                     $_SESSION['otp_user_email'] = $user['email'];
