@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Full Name</label>
                     <input type="text" name="name" required
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-yellow-500 transition-colors"
-                           placeholder="<?= __('name.placeholder') ?>">
+                           placeholder="John Doe">
                 </div>
 
                 <div class="relative">

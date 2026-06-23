@@ -146,6 +146,30 @@ try {
             out("  [OK] Added approved column to users", $isCLI);
         }
 
+        // Create audit_logs table if missing
+        if (!in_array('audit_logs', $tables)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS audit_logs (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT DEFAULT NULL,
+                user_name VARCHAR(255) DEFAULT NULL,
+                user_email VARCHAR(255) DEFAULT NULL,
+                user_role VARCHAR(50) DEFAULT NULL,
+                action VARCHAR(100) NOT NULL,
+                entity_type VARCHAR(50) DEFAULT NULL,
+                entity_id INT DEFAULT NULL,
+                details TEXT DEFAULT NULL,
+                ip_address VARCHAR(45) DEFAULT NULL,
+                user_agent TEXT DEFAULT NULL,
+                severity VARCHAR(20) DEFAULT 'info',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_action (action),
+                INDEX idx_severity (severity),
+                INDEX idx_user_id (user_id),
+                INDEX idx_created_at (created_at)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            out("  [OK] Created audit_logs table", $isCLI);
+        }
+
         out("", $isCLI);
         out("[OK] Fix complete!", $isCLI);
         if (!$isCLI) echo '<p><a href="register.php">Test Ward dropdown →</a></p>';

@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Your account has not been verified. Please check your email for the verification code or <a href="fundi-register.php" class="underline">register again</a>.';
             logActivity('login_blocked', 'user', $user['id'], "Unapproved fundi attempted login: {$user['email']}", 'warning');
         } else {
-            $demoEmails = ['super@example.com', 'zainab@example.com', 'steve@example.com', 'teleza@example.com', 'mteja@example.com', 'ali@example.com', 'david@example.com'];
+            $demoEmails = ['super@example.com', 'zainab@example.com', 'steve@example.com', 'teleza@example.com', 'client@example.com', 'ali@example.com', 'david@example.com'];
 
             if (in_array($user['email'], $demoEmails)) {
                 registerDevice($user['id'], getDeviceToken());

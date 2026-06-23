@@ -32,9 +32,12 @@ $files = [
     'client/dashboard.php'         => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/client/dashboard.php',
     'db-update.php'                => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/db-update.php',
     'database/schema.sql'          => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/database/schema.sql',
+    'super_admin/users.php'        => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/super_admin/users.php',
+    'super_admin/settings.php'     => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/super_admin/settings.php',
     'super_admin/audit-logs.php'   => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/super_admin/audit-logs.php',
     'super_admin/security-report.php' => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/super_admin/security-report.php',
     'super_admin/threat-dashboard.php' => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/super_admin/threat-dashboard.php',
+    '.htaccess'                    => 'https://raw.githubusercontent.com/abnormal-yi/smart-ujenzi-/main/.htaccess',
 ];
 
 $base = __DIR__;

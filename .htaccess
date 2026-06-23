@@ -1,36 +1,10 @@
-# SmartUjenzi - Apache config for production
-# Place this in your web root or Apache site config
+RewriteEngine On
 
-# Deny access to sensitive directories
-<IfModule mod_rewrite.c>
-    RewriteEngine On
+# Hide .php extension
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
 
-    # Block access to includes/, database/, assets/ (except public files)
-    RewriteRule ^includes/ - [F,L]
-    RewriteRule ^database/ - [F,L]
-    RewriteRule ^assets/(css|js)/(.*)$ - [L]
-    RewriteRule ^assets/ - [F,L]
-
-    # Block .sql, .md, .json, .sh, .env files from web
-    RewriteRule \.(sql|md|json|sh|env)$ - [F,L]
-
-    # Block setup.php from web access
-    RewriteRule ^setup\.php$ - [F,L]
-</IfModule>
-
-# Deny directory listing
-<IfModule mod_autoindex.c>
-    Options -Indexes
-</IfModule>
-
-# Deny access to hidden files
-<FilesMatch "^\.">
-    Require all denied
-</FilesMatch>
-
-# Security headers
-<IfModule mod_headers.c>
-    Header always set X-Content-Type-Options "nosniff"
-    Header always set X-Frame-Options "DENY"
-    Header always set Referrer-Policy "strict-origin-when-cross-origin"
-</IfModule>
+# Redirect URLs containing .php to extensionless URLs
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
+RewriteRule ^ %1 [R=301,L]

@@ -21,8 +21,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_role'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user'])) {
     $userId = (int)$_POST['user_id'];
     if ($userId !== $_SESSION['user_id']) {
-        runQuery("DELETE FROM users WHERE id = ?", [$userId]);
-        $success = 'User deleted!';
+        try {
+            $db = getDB();
+            $db->beginTransaction();
+            $db->exec("DELETE FROM user_devices WHERE user_id = $userId");
+            $db->exec("DELETE FROM otp_codes WHERE user_id = $userId");
+            $db->exec("DELETE FROM audit_logs WHERE user_id = $userId");
+            $db->exec("DELETE FROM notifications WHERE user_id = $userId");
+            $db->exec("UPDATE projects SET project_manager_id = NULL WHERE project_manager_id = $userId");
+            $db->exec("UPDATE customer_requests SET assigned_pm_id = NULL WHERE assigned_pm_id = $userId");
+            $db->exec("DELETE FROM users WHERE id = $userId");
+            $db->commit();
+            logActivity('user_deleted', 'user', $userId, "User #{$userId} deleted by " . $_SESSION['user_id']);
+            $success = 'User deleted!';
+        } catch (Exception $e) {
+            $db->rollBack();
+            $error = 'Could not delete user: ' . $e->getMessage();
+        }
     } else {
         $error = 'You cannot delete your own account.';
     }

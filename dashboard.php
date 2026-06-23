@@ -150,6 +150,58 @@ if ($role === 'super_admin' || $role === 'admin'):
     </div>
 </div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+            Workers
+        </h3>
+        <?php $workers = runQuery("SELECT id, name, skills, location FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name"); ?>
+        <?php if (empty($workers)): ?>
+            <p class="text-gray-500 text-sm">No workers registered.</p>
+        <?php else: ?>
+            <div class="overflow-x-auto text-sm max-h-64 overflow-y-auto">
+                <table class="w-full">
+                    <thead><tr class="text-left text-gray-500 border-b"><th class="pb-2 pr-4 font-medium">Name</th><th class="pb-2 pr-4 font-medium">Skills</th><th class="pb-2 font-medium">Location</th></tr></thead>
+                    <tbody>
+                        <?php foreach ($workers as $w): ?>
+                        <tr class="border-b border-gray-50">
+                            <td class="py-2 pr-4 font-medium text-gray-800"><?= htmlspecialchars($w['name']) ?></td>
+                            <td class="py-2 pr-4 text-gray-600"><?= htmlspecialchars($w['skills'] ?? '-') ?></td>
+                            <td class="py-2 text-gray-600"><?= htmlspecialchars($w['location'] ?? '-') ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Recent Discussions
+        </h3>
+        <?php $recentMessages = runQuery("SELECT m.*, u.name as sender_name, p.name as project_name FROM messages m LEFT JOIN users u ON m.sender_id = u.id LEFT JOIN projects p ON m.project_id = p.id ORDER BY m.id DESC LIMIT 10"); ?>
+        <?php if (empty($recentMessages)): ?>
+            <p class="text-gray-500 text-sm">No discussions yet.</p>
+        <?php else: ?>
+            <div class="space-y-2 max-h-64 overflow-y-auto text-sm">
+                <?php foreach ($recentMessages as $msg): ?>
+                <div class="p-2 rounded-lg bg-gray-50">
+                    <div class="flex justify-between items-start">
+                        <span class="font-medium text-gray-800 text-xs"><?= htmlspecialchars($msg['sender_name'] ?? '-') ?></span>
+                        <span class="text-xs text-gray-400"><?= date('M j, g:i A', strtotime($msg['created_at'] ?? '')) ?></span>
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 truncate"><?= htmlspecialchars($msg['message'] ?? '') ?></p>
+                    <span class="text-xs text-gray-400">Project: <?= htmlspecialchars($msg['project_name'] ?? '-') ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <a href="messages.php" class="mt-3 inline-block text-sm text-blue-600 hover:underline">View all discussions</a>
+        <?php endif; ?>
+    </div>
+</div>
+
 <?php elseif ($role === 'project_manager'):
     $myProjects = runQuery("SELECT * FROM projects WHERE project_manager_id = ?", [$userId]);
     $myRequests = runQuery("SELECT * FROM customer_requests WHERE assigned_pm_id = ?", [$userId]);
@@ -220,6 +272,59 @@ if ($role === 'super_admin' || $role === 'admin'):
             </table>
         </div>
     <?php endif; ?>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/></svg>
+            Workers
+        </h3>
+        <?php $workers = runQuery("SELECT id, name, skills, location FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name"); ?>
+        <?php if (empty($workers)): ?>
+            <p class="text-gray-500 text-sm">No workers registered.</p>
+        <?php else: ?>
+            <div class="overflow-x-auto text-sm max-h-64 overflow-y-auto">
+                <table class="w-full">
+                    <thead><tr class="text-left text-gray-500 border-b"><th class="pb-2 pr-4 font-medium">Name</th><th class="pb-2 pr-4 font-medium">Skills</th><th class="pb-2 font-medium">Location</th></tr></thead>
+                    <tbody>
+                        <?php foreach ($workers as $w): ?>
+                        <tr class="border-b border-gray-50">
+                            <td class="py-2 pr-4 font-medium text-gray-800"><?= htmlspecialchars($w['name']) ?></td>
+                            <td class="py-2 pr-4 text-gray-600"><?= htmlspecialchars($w['skills'] ?? '-') ?></td>
+                            <td class="py-2 text-gray-600"><?= htmlspecialchars($w['location'] ?? '-') ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <a href="workers.php" class="mt-3 inline-block text-sm text-blue-600 hover:underline">View all workers</a>
+        <?php endif; ?>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            Recent Discussions
+        </h3>
+        <?php $recentMessages = runQuery("SELECT m.*, u.name as sender_name, p.name as project_name FROM messages m LEFT JOIN users u ON m.sender_id = u.id LEFT JOIN projects p ON m.project_id = p.id ORDER BY m.id DESC LIMIT 10"); ?>
+        <?php if (empty($recentMessages)): ?>
+            <p class="text-gray-500 text-sm">No discussions yet.</p>
+        <?php else: ?>
+            <div class="space-y-2 max-h-64 overflow-y-auto text-sm">
+                <?php foreach ($recentMessages as $msg): ?>
+                <div class="p-2 rounded-lg bg-gray-50">
+                    <div class="flex justify-between items-start">
+                        <span class="font-medium text-gray-800 text-xs"><?= htmlspecialchars($msg['sender_name'] ?? '-') ?></span>
+                        <span class="text-xs text-gray-400"><?= date('M j, g:i A', strtotime($msg['created_at'] ?? '')) ?></span>
+                    </div>
+                    <p class="text-gray-600 text-xs mt-1 truncate"><?= htmlspecialchars($msg['message'] ?? '') ?></p>
+                    <span class="text-xs text-gray-400">Project: <?= htmlspecialchars($msg['project_name'] ?? '-') ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <a href="messages.php" class="mt-3 inline-block text-sm text-blue-600 hover:underline">View all discussions</a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <?php elseif ($role === 'fundi'):
