@@ -7,6 +7,27 @@ function sendEmail(string $to, string $subject, string $body): bool {
     $methods = [];
 
     $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
+        if (!defined('SMTP_USER') || !SMTP_USER || !defined('SMTP_PASS') || !SMTP_PASS) return false;
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = SMTP_HOST;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASS;
+        $mail->Port       = SMTP_PORT;
+        $mail->SMTPSecure = SMTP_PORT == 465 ? PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS : PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPOptions = ['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]];
+        $mail->Timeout    = 10;
+        $mail->setFrom($from, $fromName);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+        $mail->send();
+        return true;
+    };
+
+    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSMTP();
         $mail->Host       = 'localhost';
@@ -25,18 +46,6 @@ function sendEmail(string $to, string $subject, string $body): bool {
     $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
         $mail = new PHPMailer\PHPMailer\PHPMailer(true);
         $mail->isSendmail();
-        $mail->setFrom($from, $fromName);
-        $mail->addAddress($to);
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $body;
-        $mail->send();
-        return true;
-    };
-
-    $methods[] = function() use ($to, $subject, $body, $from, $fromName) {
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->isMail();
         $mail->setFrom($from, $fromName);
         $mail->addAddress($to);
         $mail->isHTML(true);
