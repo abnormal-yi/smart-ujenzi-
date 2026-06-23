@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__ . '/../vendor/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/../vendor/phpmailer/SMTP.php';
+require_once __DIR__ . '/../vendor/phpmailer/Exception.php';
+
 function sendEmail(string $to, string $subject, string $body): bool {
     $from     = defined('SMTP_FROM') ? SMTP_FROM : 'noreply@trisa.luxurywebs.com';
     $fromName = defined('SMTP_FROM_NAME') ? SMTP_FROM_NAME : 'SmartUjenzi';
