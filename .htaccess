@@ -1,10 +1,1 @@
-RewriteEngine On
-
-# Hide .php extension
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}.php -f
-RewriteRule ^([^/]+)/?$ $1.php [L]
-
-# Redirect URLs containing .php to extensionless URLs
-RewriteCond %{THE_REQUEST} \s/+(.+?)\.php[\s?] [NC]
-RewriteRule ^ %1 [R=301,L]
+# LiteSpeed safe - no rewrites
