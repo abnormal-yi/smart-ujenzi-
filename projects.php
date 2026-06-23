@@ -2,10 +2,6 @@
 $pageTitle = 'Projects';
 require_once __DIR__ . '/includes/functions.php';
 requireLogin();
-require_once __DIR__ . '/includes/header.php';
-
-$role = $_SESSION['role'];
-$userId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
@@ -22,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('projects.php');
     }
 }
+
+require_once __DIR__ . '/includes/header.php';
+
+$role = $_SESSION['role'];
+$userId = $_SESSION['user_id'];
 
 if ($role === 'super_admin' || $role === 'admin') {
     $projects = runQuery("SELECT p.*, u.name as pm_name FROM projects p LEFT JOIN users u ON p.project_manager_id = u.id ORDER BY p.id DESC");

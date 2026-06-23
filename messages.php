@@ -3,20 +3,21 @@
 $pageTitle = 'Discussions';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'project_manager']);
-require_once __DIR__ . '/includes/header.php';
 
 $projects = runQuery('SELECT id, name FROM projects');
 // Default to the first project if none is selected via query param
 $selectedProject = $_GET['project_id'] ?? ($projects[0]['id'] ?? null);
 
 $messages = [];
+if ($selectedProject && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
+    executeQuery('INSERT INTO messages (project_id, sender_id, message) VALUES (?, ?, ?)',
+        [$selectedProject, $_SESSION['user_id'], $_POST['message']]);
+    redirect('messages.php?project_id=' . $selectedProject);
+}
+
+require_once __DIR__ . '/includes/header.php';
+
 if ($selectedProject) {
-    // Handle new message submission for the selected project
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['message'])) {
-        executeQuery('INSERT INTO messages (project_id, sender_id, message) VALUES (?, ?, ?)',
-            [$selectedProject, $_SESSION['user_id'], $_POST['message']]);
-        redirect('messages.php?project_id=' . $selectedProject);
-    }
     // Fetch all messages for the selected project with sender info, oldest first
     $messages = runQuery('SELECT m.*, u.name as sender_name, u.role as sender_role FROM messages m JOIN users u ON m.sender_id = u.id WHERE m.project_id = ? ORDER BY m.created_at ASC', [$selectedProject]);
 }

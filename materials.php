@@ -3,7 +3,6 @@
 $pageTitle = 'Materials';
 require_once __DIR__ . '/includes/functions.php';
 requireRole(['admin', 'project_manager']);
-require_once __DIR__ . '/includes/header.php';
 
 // Handle POST actions: add new material or update stock level
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -26,6 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     redirect('materials.php');
 }
+
+require_once __DIR__ . '/includes/header.php';
 
 // Fetch all materials ordered by newest first
 $materials = runQuery('SELECT * FROM materials ORDER BY id DESC');

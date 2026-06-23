@@ -2,7 +2,6 @@
 $pageTitle = 'Approve Fundi';
 require_once __DIR__ . '/../includes/functions.php';
 requireRole(['project_manager', 'admin', 'super_admin']);
-require_once __DIR__ . '/../includes/header.php';
 
 $userId = $_SESSION['user_id'];
 
@@ -19,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['fun
     }
     redirect('fundi-approve.php');
 }
+
+require_once __DIR__ . '/../includes/header.php';
 
 $pendingFundis = [];
 $approvedFundis = [];

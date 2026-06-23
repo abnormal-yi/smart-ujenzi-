@@ -3,7 +3,6 @@ require_once __DIR__ . '/includes/functions.php';
 // Workers (Mafundi) & Equipment management page: add resources and assign to projects
 $pageTitle = __('nav.workers');
 requireRole(['admin', 'project_manager']);
-require_once __DIR__ . '/includes/header.php';
 
 // Handle resource creation (labor or equipment)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'create') {
@@ -14,19 +13,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'create') {
     redirect('workers.php');
 }
 
-// Fetch all resources and separate into labor and equipment arrays for display
-$resources = runQuery('SELECT * FROM resources ORDER BY id DESC');
-$labor = array_filter($resources, fn($r) => $r['type'] === 'labor');
-$equipment = array_filter($resources, fn($r) => $r['type'] === 'equipment');
-
 // Handle resource allocation to a project
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST['action'] === 'allocate') {
-    // Insert an allocation record linking a resource to a project
     executeQuery('INSERT INTO allocations (project_id, type, item_id, quantity) VALUES (?, "resource", ?, 1)',
         [$_POST['project_id'], $_POST['resource_id']]);
     $_SESSION['flash'] = ['type' => 'success', 'message' => 'Resource allocated to project'];
     redirect('workers.php');
 }
+
+require_once __DIR__ . '/includes/header.php';
+
+// Fetch all resources and separate into labor and equipment arrays for display
+$resources = runQuery('SELECT * FROM resources ORDER BY id DESC');
+$labor = array_filter($resources, fn($r) => $r['type'] === 'labor');
+$equipment = array_filter($resources, fn($r) => $r['type'] === 'equipment');
 
 $projects = runQuery('SELECT id, name FROM projects');
 // Fetch all current allocations with resource and project names via JOINs
