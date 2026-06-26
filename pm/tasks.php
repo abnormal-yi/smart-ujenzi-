@@ -22,6 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_fundi'])) {
 
 $myProjects = runQuery("SELECT id, name FROM projects WHERE project_manager_id = ?", [$userId]);
 $fundis = runQuery("SELECT id, name, skills FROM users WHERE role = 'fundi' AND approved = 1 ORDER BY name");
+$assignedFundiProjects = runQuery("SELECT DISTINCT fundi_id, project_id FROM tasks WHERE fundi_id IS NOT NULL");
+$assignedMap = [];
+foreach ($assignedFundiProjects as $af) {
+    $assignedMap[$af['project_id']][] = $af['fundi_id'];
+}
 $tasks = runQuery("SELECT t.*, p.name as project_name, u.name as fundi_name FROM tasks t JOIN projects p ON t.project_id = p.id LEFT JOIN users u ON t.fundi_id = u.id WHERE p.project_manager_id = ? ORDER BY t.deadline", [$userId]);
 ?>
 <?php if (isset($success)): ?>
@@ -105,9 +110,13 @@ $tasks = runQuery("SELECT t.*, p.name as project_name, u.name as fundi_name FROM
                                     <form method="POST" class="flex items-center gap-2">
                                         <input type="hidden" name="assign_fundi" value="1">
                                         <input type="hidden" name="task_id" value="<?= $t['id'] ?>">
+                                        <?php
+                                        $excludedIds = $assignedMap[$t['project_id'] ?? 0] ?? [];
+                                        $availableFundis = array_filter($fundis, fn($f) => !in_array($f['id'], $excludedIds) || $f['id'] == $t['fundi_id']);
+                                        ?>
                                         <select name="fundi_id" class="text-xs px-2 py-1 border border-gray-300 rounded">
                                             <option value="">Assign Fundi</option>
-                                            <?php foreach ($fundis as $f): ?>
+                                            <?php foreach ($availableFundis as $f): ?>
                                                 <option value="<?= $f['id'] ?>" <?= $f['id'] == $t['fundi_id'] ? 'selected' : '' ?>><?= htmlspecialchars($f['name']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
