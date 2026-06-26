@@ -149,6 +149,14 @@ try {
             $pdo->exec("ALTER TABLE projects ADD COLUMN icon VARCHAR(10) DEFAULT '🏗️'");
             out("  [OK] Added icon column to projects", $isCLI);
         }
+        if (!in_array('google_id', $cols)) {
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN google_id VARCHAR(255) NULL UNIQUE"); } catch (Exception $e) {}
+            out("  [OK] Added google_id column to users", $isCLI);
+        }
+        if (!in_array('avatar_url', $cols)) {
+            try { $pdo->exec("ALTER TABLE users ADD COLUMN avatar_url TEXT NULL"); } catch (Exception $e) {}
+            out("  [OK] Added avatar_url column to users", $isCLI);
+        }
 
         // Create password_resets table if missing
         if (!in_array('password_resets', $tables)) {

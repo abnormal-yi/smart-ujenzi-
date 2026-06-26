@@ -49,6 +49,12 @@ define('SMTP_PASS', defined('OVERRIDE_SMTP_PASS') ? OVERRIDE_SMTP_PASS : '');
 define('SMTP_FROM', defined('OVERRIDE_SMTP_FROM') ? OVERRIDE_SMTP_FROM : 'noreply@trisa.luxurywebs.com');
 define('SMTP_FROM_NAME', defined('OVERRIDE_SMTP_FROM_NAME') ? OVERRIDE_SMTP_FROM_NAME : 'SmartUjenzi');
 
+define('APP_URL', defined('OVERRIDE_APP_URL') ? OVERRIDE_APP_URL : 'https://trisa.luxurywebs.com');
+
+define('GOOGLE_CLIENT_ID', defined('OVERRIDE_GOOGLE_CLIENT_ID') ? OVERRIDE_GOOGLE_CLIENT_ID : '');
+define('GOOGLE_CLIENT_SECRET', defined('OVERRIDE_GOOGLE_CLIENT_SECRET') ? OVERRIDE_GOOGLE_CLIENT_SECRET : '');
+define('GOOGLE_REDIRECT_URI', (defined('APP_URL') ? APP_URL : 'https://trisa.luxurywebs.com') . '/google-callback.php');
+
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
