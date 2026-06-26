@@ -10,6 +10,7 @@ USE test_smart_ujenzi;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop all existing tables to ensure a clean slate before re-creating
+DROP TABLE IF EXISTS request_documents;
 DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS project_media;
 DROP TABLE IF EXISTS payments;
@@ -175,6 +176,23 @@ CREATE TABLE customer_requests (
     FOREIGN KEY(customer_id) REFERENCES users(id),
     FOREIGN KEY(company_id) REFERENCES companies(id),
     FOREIGN KEY(assigned_pm_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: request_documents
+-- Client-uploaded documents attached to customer requests
+-- ====================
+CREATE TABLE request_documents (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id INT NOT NULL,
+    file_name VARCHAR(255) NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    file_size INT NOT NULL DEFAULT 0,
+    file_type VARCHAR(100) NOT NULL DEFAULT '',
+    uploaded_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (request_id) REFERENCES customer_requests(id) ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================

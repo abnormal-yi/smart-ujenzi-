@@ -197,6 +197,23 @@ try {
             out("  [OK] Created audit_logs table", $isCLI);
         }
 
+        // Create request_documents table if missing
+        if (!in_array('request_documents', $tables)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS request_documents (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                request_id INT NOT NULL,
+                file_name VARCHAR(255) NOT NULL,
+                original_name VARCHAR(255) NOT NULL,
+                file_size INT NOT NULL DEFAULT 0,
+                file_type VARCHAR(100) NOT NULL DEFAULT '',
+                uploaded_by INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (request_id) REFERENCES customer_requests(id) ON DELETE CASCADE,
+                FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            out("  [OK] Created request_documents table", $isCLI);
+        }
+
         out("", $isCLI);
         out("[OK] Fix complete!", $isCLI);
         if (!$isCLI) echo '<p><a href="register.php">Test Ward dropdown →</a></p>';
