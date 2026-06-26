@@ -45,12 +45,14 @@ $canCreate = in_array($role, ['super_admin', 'admin', 'project_manager']);
         <div>
             <p class="text-sm text-gray-500"><?= count($projects) ?> total projects</p>
         </div>
-        <?php if ($canCreate): ?>
-        <button onclick="openModal('create-modal')" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium">
-            + New Project
-        </button>
-        <?php endif; ?>
-    </div>
+        <div class="flex items-center gap-2">
+            <a href="gantt.php" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">📊 Gantt</a>
+            <?php if ($canCreate): ?>
+            <button onclick="openModal('create-modal')" class="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium">
+                + New Project
+            </button>
+            <?php endif; ?>
+        </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
