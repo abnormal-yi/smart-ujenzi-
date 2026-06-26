@@ -7,6 +7,10 @@ require_once __DIR__ . '/../includes/header.php';
 $userId = $_SESSION['user_id'];
 
 $requests = runQuery("SELECT cr.*, c.name as company_name, pm.name as pm_name FROM customer_requests cr LEFT JOIN companies c ON cr.company_id = c.id LEFT JOIN users pm ON cr.assigned_pm_id = pm.id WHERE cr.customer_id = ? ORDER BY cr.id DESC", [$userId]);
+
+$docCounts = [];
+$docs = runQuery("SELECT request_id, COUNT(*) as cnt FROM request_documents WHERE request_id IN (SELECT id FROM customer_requests WHERE customer_id = ?) GROUP BY request_id", [$userId]);
+foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
 ?>
 
 <?php if (empty($requests)): ?>
@@ -39,6 +43,9 @@ $requests = runQuery("SELECT cr.*, c.name as company_name, pm.name as pm_name FR
             <?php if ($r['assigned_pm_id']): ?>
             <span><span class="font-medium text-gray-700">PM:</span> <?= htmlspecialchars($r['pm_name'] ?? 'Assigned') ?></span>
             <?php endif; ?>
+            <a href="upload-documents.php?request_id=<?= $r['id'] ?>" class="text-blue-600 hover:underline font-medium">
+                📄 Documents (<?= (int)($docCounts[$r['id']] ?? 0) ?>)
+            </a>
         </div>
     </div>
     <?php endforeach; ?>

@@ -8,6 +8,10 @@ $role = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
 $success = '';
 
+$docCounts = [];
+$docs = runQuery("SELECT request_id, COUNT(*) as cnt FROM request_documents GROUP BY request_id");
+foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_pm'])) {
     $reqId = (int)$_POST['request_id'];
     $pmId = (int)$_POST['pm_id'];
@@ -45,6 +49,7 @@ $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accep
                     <th class="pb-3 font-semibold text-gray-600">Type</th>
                     <th class="pb-3 font-semibold text-gray-600">Location</th>
                     <th class="pb-3 font-semibold text-gray-600">Status</th>
+                    <th class="pb-3 font-semibold text-gray-600">Docs</th>
                     <th class="pb-3 font-semibold text-gray-600">Assigned PM</th>
                     <th class="pb-3 font-semibold text-gray-600">Actions</th>
                 </tr>
@@ -58,6 +63,12 @@ $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accep
                     <td class="py-3 text-gray-600"><?= htmlspecialchars($r['location']) ?></td>
                     <td class="py-3">
                         <span class="badge <?= $statusColors[$r['status']] ?? 'badge-gray' ?>"><?= $r['status'] ?></span>
+                    </td>
+                    <td class="py-3">
+                        <div class="flex items-center gap-1">
+                            <span class="text-xs text-gray-500"><?= (int)($docCounts[$r['id']] ?? 0) ?> files</span>
+                            <a href="client/upload-documents.php?request_id=<?= $r['id'] ?>" class="text-xs text-blue-600 hover:underline ml-1">Manage</a>
+                        </div>
                     </td>
                     <td class="py-3 text-gray-600"><?= htmlspecialchars($r['pm_name'] ?? '—') ?></td>
                     <td class="py-3">
