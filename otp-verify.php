@@ -25,8 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($otp) {
         executeQuery("UPDATE otp_codes SET used = 1 WHERE id = ?", [$otp['id']]);
 
-        $deviceToken = getDeviceToken();
-        registerDevice($userId, $deviceToken);
+        registerDevice($userId);
 
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $_SESSION['otp_user_name'];

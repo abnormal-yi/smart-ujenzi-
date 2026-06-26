@@ -89,8 +89,10 @@ function isKnownDevice(int $userId, string $token): bool {
     return !empty($res);
 }
 
-function registerDevice(int $userId, string $token): void {
-    executeQuery("INSERT INTO user_devices (user_id, device_token) VALUES (?, ?)", [$userId, $token]);
+function registerDevice(int $userId): void {
+    $fingerprint = getDeviceToken();
+    if (!$fingerprint) return;
+    executeQuery("INSERT INTO user_devices (user_id, device_token) VALUES (?, ?)", [$userId, $fingerprint]);
 }
 
 function logActivity(string $action, ?string $entityType = null, ?int $entityId = null, ?string $details = null, string $severity = 'info'): void {
