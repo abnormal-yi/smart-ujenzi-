@@ -28,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         if (!$user) {
-            $error = 'No user found with that email';
+            $error = 'Invalid username or password';
             logActivity('login_failed', 'user', null, "Failed login attempt for: $email", 'warning');
         } elseif (!password_verify($password, $user['password'])) {
-            $error = 'Password does not match stored hash';
+            $error = 'Invalid username or password';
             logActivity('login_failed', 'user', null, "Wrong password for: $email", 'warning');
         } elseif ($user['role'] === 'fundi' && empty($user['approved'])) {
             $error = 'Your account has not been verified. Please check your email for the verification code or <a href="fundi-register.php" class="underline">register again</a>.';
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('dashboard.php');
             } else {
                 $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-                executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 5 MINUTE))", [$user['id'], $code]);
+                executeQuery("INSERT INTO otp_codes (user_id, code, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 10 MINUTE))", [$user['id'], $code]);
 
                 require_once __DIR__ . '/includes/mailer.php';
                 $mailResult = sendEmail($user['email'], 'Your SmartUjenzi OTP Code',
