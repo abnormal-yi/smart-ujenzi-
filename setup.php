@@ -145,6 +145,10 @@ try {
             $pdo->exec("ALTER TABLE users ADD COLUMN approved TINYINT(1) DEFAULT 1");
             out("  [OK] Added approved column to users", $isCLI);
         }
+        if (!in_array('icon', $cols)) {
+            $pdo->exec("ALTER TABLE projects ADD COLUMN icon VARCHAR(10) DEFAULT '🏗️'");
+            out("  [OK] Added icon column to projects", $isCLI);
+        }
 
         // Create audit_logs table if missing
         if (!in_array('audit_logs', $tables)) {

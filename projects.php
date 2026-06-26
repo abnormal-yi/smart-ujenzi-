@@ -6,8 +6,8 @@ requireLogin();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'create') {
-            $res = executeQuery('INSERT INTO projects (name, description, project_manager_id, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                [$_POST['name'], $_POST['description'], $_POST['project_manager_id'] ?: null, $_POST['start_date'] ?: null, $_POST['end_date'] ?: null]);
+            $res = executeQuery('INSERT INTO projects (name, description, project_manager_id, start_date, end_date, icon) VALUES (?, ?, ?, ?, ?, ?)',
+                [$_POST['name'], $_POST['description'], $_POST['project_manager_id'] ?: null, $_POST['start_date'] ?: null, $_POST['end_date'] ?: null, $_POST['icon'] ?? '🏗️']);
             logActivity('project_created', 'project', $res['id'], "Created project: {$_POST['name']}");
             $_SESSION['flash'] = ['type' => 'success', 'message' => 'Project created successfully'];
         } elseif ($_POST['action'] === 'status') {
@@ -67,7 +67,10 @@ $canCreate = in_array($role, ['super_admin', 'admin', 'project_manager']);
             <tbody>
                 <?php foreach ($projects as $p): ?>
                 <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 font-medium"><?= htmlspecialchars($p['name']) ?></td>
+                    <td class="py-3 font-medium">
+                        <span class="text-blue-500 mr-1"><?= htmlspecialchars($p['icon'] ?? '🏗️') ?></span>
+                        <?= htmlspecialchars($p['name']) ?>
+                    </td>
                     <td class="py-3 text-gray-600"><?= htmlspecialchars($p['pm_name'] ?? '—') ?></td>
                     <td class="py-3">
                         <span class="badge <?= $statusColors[$p['status']] ?? 'badge-gray' ?>"><?= $p['status'] ?></span>
@@ -117,6 +120,17 @@ $canCreate = in_array($role, ['super_admin', 'admin', 'project_manager']);
                         <label class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                         <input type="date" name="end_date" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
                     </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Project Icon</label>
+                    <select name="icon" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
+                        <option value="🏗️">🏗️ Construction</option>
+                        <option value="🏠">🏠 House</option>
+                        <option value="🔧">🔧 Tools</option>
+                        <option value="📋">📋 Planning</option>
+                        <option value="🎯">🎯 Project</option>
+                        <option value="🧱">🧱 Masonry</option>
+                    </select>
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
