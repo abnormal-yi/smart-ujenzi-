@@ -55,6 +55,8 @@ define('GOOGLE_CLIENT_ID', defined('OVERRIDE_GOOGLE_CLIENT_ID') ? OVERRIDE_GOOGL
 define('GOOGLE_CLIENT_SECRET', defined('OVERRIDE_GOOGLE_CLIENT_SECRET') ? OVERRIDE_GOOGLE_CLIENT_SECRET : '');
 define('GOOGLE_REDIRECT_URI', (defined('APP_URL') ? APP_URL : 'https://trisa.luxurywebs.com') . '/google-callback.php');
 
+define('ENCRYPTION_KEY', defined('OVERRIDE_ENCRYPTION_KEY') ? OVERRIDE_ENCRYPTION_KEY : 'sM4rtUj3nz1K3y!2026#Secr3t');
+
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {

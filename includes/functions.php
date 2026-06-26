@@ -109,3 +109,14 @@ function logActivity(string $action, ?string $entityType = null, ?int $entityId 
         // silently fail — logging should never break the app
     }
 }
+
+function encryptId(int $id): string {
+    $raw = openssl_encrypt((string)$id, 'aes-128-ecb', ENCRYPTION_KEY, OPENSSL_RAW_DATA);
+    return rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
+}
+
+function decryptId(string $hash): int {
+    $decoded = base64_decode(strtr($hash, '-_', '+/'));
+    $decrypted = openssl_decrypt($decoded, 'aes-128-ecb', ENCRYPTION_KEY, OPENSSL_RAW_DATA);
+    return $decrypted !== false ? (int)$decrypted : 0;
+}
