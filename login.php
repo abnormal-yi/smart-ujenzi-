@@ -167,6 +167,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            placeholder="********" required>
                 </div>
 
+                <div class="text-right -mt-4 mb-2">
+                    <a href="forgot-password.php" class="text-sm text-yellow-500 hover:underline">Forgot Password?</a>
+                </div>
+
                 <button type="submit"
                         class="w-full bg-[#1BD988] hover:bg-[#15b771] text-black font-bold py-4 px-4 rounded-xl transition-colors mt-8">
                     Log in

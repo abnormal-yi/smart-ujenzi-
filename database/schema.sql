@@ -10,6 +10,7 @@ USE test_smart_ujenzi;
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- Drop all existing tables to ensure a clean slate before re-creating
+DROP TABLE IF EXISTS password_resets;
 DROP TABLE IF EXISTS project_media;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS messages;
@@ -285,6 +286,21 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     INDEX idx_audit_action (action, created_at),
     INDEX idx_audit_severity (severity, created_at),
     INDEX idx_audit_ip (ip_address)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ====================
+-- Table: password_resets
+-- Stores password reset tokens with expiration
+-- ====================
+CREATE TABLE password_resets (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    used TINYINT(1) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_token (token),
+    INDEX idx_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ====================

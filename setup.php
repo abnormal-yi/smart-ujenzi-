@@ -150,6 +150,21 @@ try {
             out("  [OK] Added icon column to projects", $isCLI);
         }
 
+        // Create password_resets table if missing
+        if (!in_array('password_resets', $tables)) {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS password_resets (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                email VARCHAR(255) NOT NULL,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                expires_at DATETIME NOT NULL,
+                used TINYINT(1) DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX idx_token (token),
+                INDEX idx_email (email)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            out("  [OK] Created password_resets table", $isCLI);
+        }
+
         // Create audit_logs table if missing
         if (!in_array('audit_logs', $tables)) {
             $pdo->exec("CREATE TABLE IF NOT EXISTS audit_logs (
