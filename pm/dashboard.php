@@ -144,4 +144,41 @@ foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
     </div>
 </div>
 
+<?php
+$clientDocs = runQuery("SELECT rd.*, cr.project_type, u.name as client_name FROM request_documents rd JOIN customer_requests cr ON rd.request_id = cr.id JOIN users u ON cr.customer_id = u.id WHERE cr.assigned_pm_id = ? ORDER BY rd.created_at DESC LIMIT 20", [$userId]);
+?>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <h3 class="text-lg font-bold text-gray-800 mb-4">📁 Client Documents</h3>
+    <?php if (empty($clientDocs)): ?>
+        <p class="text-gray-500 text-sm">No documents uploaded yet. Documents appear here once clients upload them.</p>
+    <?php else: ?>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-left text-gray-500 border-b border-gray-100">
+                    <th class="pb-3 font-medium">File</th>
+                    <th class="pb-3 font-medium">Client</th>
+                    <th class="pb-3 font-medium">Project</th>
+                    <th class="pb-3 font-medium">Date</th>
+                    <th class="pb-3 font-medium">Download</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($clientDocs as $d): ?>
+                <tr class="border-b border-gray-50">
+                    <td class="py-3 text-gray-800"><?= htmlspecialchars($d['original_name']) ?></td>
+                    <td class="py-3 text-gray-600"><?= htmlspecialchars($d['client_name']) ?></td>
+                    <td class="py-3 text-gray-600"><?= htmlspecialchars($d['project_type']) ?></td>
+                    <td class="py-3 text-gray-500"><?= date('M j, Y', strtotime($d['created_at'])) ?></td>
+                    <td class="py-3">
+                        <a href="../download-document.php?id=<?= $d['id'] ?>" class="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">⬇ Download</a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+</div>
+
 <?php require_once __DIR__ . '/../includes/footer.php'; ?>
