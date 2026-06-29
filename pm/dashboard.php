@@ -72,7 +72,7 @@ foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
                         <?php foreach ($myProjects as $p): ?>
                         <tr class="border-b border-gray-50">
                             <td class="py-3 text-gray-800 font-medium">
-                                <a href="../gantt.php" class="text-blue-600 hover:underline"><?= htmlspecialchars($p['name']) ?></a>
+                                <a href="../gantt.php?project_id=<?= $p['id'] ?>" class="text-blue-600 hover:underline"><?= htmlspecialchars($p['name']) ?></a>
                             </td>
                             <td class="py-3">
                                 <span class="px-2 py-1 text-xs rounded-full <?= $p['status'] === 'Completed' ? 'bg-green-100 text-green-700' : ($p['status'] === 'Ongoing' || $p['status'] === 'In Progress' ? 'bg-blue-100 text-blue-700' : ($p['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700')) ?>"><?= $p['status'] ?></span>

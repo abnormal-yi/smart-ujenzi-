@@ -35,7 +35,7 @@ $statuses = ['Pending', 'Ongoing', 'In Progress', 'Completed', 'On Hold'];
         <div class="p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                 <div>
-                    <h3 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($proj['name']) ?></h3>
+                    <h3 class="text-xl font-bold text-gray-900"><a href="../gantt.php?project_id=<?= $proj['id'] ?>" class="hover:text-blue-600 transition-colors"><?= htmlspecialchars($proj['name']) ?></a></h3>
                     <?php if ($proj['description']): ?>
                         <p class="text-gray-500 text-sm mt-1"><?= htmlspecialchars($proj['description']) ?></p>
                     <?php endif; ?>

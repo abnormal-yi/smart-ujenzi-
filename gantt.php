@@ -6,8 +6,14 @@ require_once __DIR__ . '/includes/header.php';
 
 $role = $_SESSION['role'];
 $userId = $_SESSION['user_id'];
+$singleProjectId = (int)($_GET['project_id'] ?? 0);
 
-if (in_array($role, ['super_admin', 'admin'])) {
+if ($singleProjectId) {
+    $projects = runQuery("SELECT p.*, u.name as pm_name FROM projects p LEFT JOIN users u ON p.project_manager_id = u.id WHERE p.id = ?", [$singleProjectId]);
+    if ($role === 'project_manager') {
+        $projects = array_filter($projects, fn($p) => $p['project_manager_id'] == $userId);
+    }
+} elseif (in_array($role, ['super_admin', 'admin'])) {
     $projects = runQuery("SELECT p.*, u.name as pm_name FROM projects p LEFT JOIN users u ON p.project_manager_id = u.id ORDER BY p.start_date ASC");
 } elseif ($role === 'project_manager') {
     $projects = runQuery("SELECT p.*, u.name as pm_name FROM projects p LEFT JOIN users u ON p.project_manager_id = u.id WHERE p.project_manager_id = ? ORDER BY p.start_date ASC", [$userId]);
@@ -39,13 +45,18 @@ function pct($dateStr, $minDate, $totalDays): float {
     $day = ceil(($ts - $minDate) / 86400);
     return round(($day / $totalDays) * 100, 1);
 }
+
+$projectName = $singleProjectId && !empty($projects) ? $projects[array_key_first($projects)]['name'] ?? '' : '';
+
+$weekRef = $singleProjectId && !empty($projects) ? $minDate : $minDate;
 ?>
 <style>
 .gantt-container { position: relative; overflow-x: auto; }
 .gantt-header { display: flex; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; background: #fff; z-index: 10; }
 .gantt-label-col { width: 250px; min-width: 250px; flex-shrink: 0; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #374151; border-right: 1px solid #e5e7eb; }
-.gantt-chart-col { flex: 1; position: relative; height: 40px; min-width: 600px; }
-.gantt-month { position: absolute; top: 0; height: 100%; border-left: 1px solid #f3f4f6; font-size: 10px; color: #9ca3af; padding-left: 2px; padding-top: 2px; }
+.gantt-chart-col { flex: 1; position: relative; height: 48px; min-width: 600px; }
+.gantt-week { position: absolute; top: 0; height: 100%; border-left: 1px solid #f3f4f6; font-size: 10px; color: #9ca3af; text-align: center; padding-top: 2px; }
+.gantt-week-alt { background: #fafafa; }
 .gantt-today { position: absolute; top: 0; bottom: 0; width: 2px; background: #ef4444; z-index: 5; }
 .gantt-row { display: flex; border-bottom: 1px solid #f3f4f6; }
 .gantt-row-label { width: 250px; min-width: 250px; flex-shrink: 0; padding: 8px 12px; font-size: 13px; border-right: 1px solid #e5e7eb; display: flex; align-items: center; gap: 6px; }
@@ -63,7 +74,12 @@ function pct($dateStr, $minDate, $totalDays): float {
 </style>
 
 <div class="max-w-full">
-    <h1 class="text-2xl font-bold mb-6">Project Gantt Chart</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold"><?= $projectName ? htmlspecialchars($projectName) . ' — Gantt Chart' : 'Project Gantt Chart' ?></h1>
+        <?php if ($singleProjectId): ?>
+            <a href="progress.php" class="text-sm px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">← Back to Progress</a>
+        <?php endif; ?>
+    </div>
     <?php if (empty($projects)): ?>
         <p class="text-gray-500">No projects available.</p>
     <?php else: ?>
@@ -72,19 +88,34 @@ function pct($dateStr, $minDate, $totalDays): float {
             <div class="gantt-label-col">Project / Tasks</div>
             <div class="gantt-chart-col" style="position:relative;">
                 <?php
-                $monthSteps = [];
-                $cursor = strtotime(date('Y-m-01', $minDate));
-                while ($cursor <= $maxDate + 86400 * 31) {
-                    $monthSteps[] = $cursor;
-                    $cursor = strtotime('+1 month', $cursor);
+                $monday = strtotime('monday this week', $minDate);
+                if ($monday > $minDate) $monday = strtotime('-7 days', $monday);
+                $weekStarts = [];
+                $cursor = $monday;
+                $weekNum = 1;
+                while ($cursor <= $maxDate + 86400 * 7) {
+                    $weekStarts[] = $cursor;
+                    $cursor = strtotime('+7 days', $cursor);
                 }
-                foreach ($monthSteps as $i => $ms):
-                    $left = pct(date('Y-m-d', $ms), $minDate, $totalDays);
-                    $label = date('M Y', $ms);
-                    $daysInMonth = date('t', $ms);
-                    $w = round(($daysInMonth / $totalDays) * 100, 2);
+                foreach ($weekStarts as $i => $ws):
+                    $left = pct(date('Y-m-d', $ws), $minDate, $totalDays);
+                    if ($i > 0 && $weekStarts[$i-1]) {
+                        $prevLeft = pct(date('Y-m-d', $weekStarts[$i-1]), $minDate, $totalDays);
+                        $w = round($left - $prevLeft, 2);
+                    } else {
+                        $w = 0;
+                    }
+                    if ($w <= 0) continue;
+                    $alt = $i % 2 === 0;
+                    $weekLabel = '';
+                    if ($singleProjectId) {
+                        $weekLabel = 'W' . $weekNum;
+                        $weekNum++;
+                    } else {
+                        $weekLabel = date('M j', $ws);
+                    }
                 ?>
-                <div class="gantt-month" style="left:<?= $left ?>%;width:<?= $w ?>%;"><?= $label ?></div>
+                <div class="gantt-week <?= $alt ? 'gantt-week-alt' : '' ?>" style="left:<?= $left ?>%;width:<?= $w ?>%;"><?= $weekLabel ?></div>
                 <?php endforeach; ?>
                 <?php if ($today >= $minDate && $today <= $maxDate): ?>
                 <div class="gantt-today" style="left:<?= pct(date('Y-m-d', $today), $minDate, $totalDays) ?>%;"></div>
