@@ -53,6 +53,7 @@ $canCreate = in_array($role, ['super_admin', 'admin', 'project_manager']);
             </button>
             <?php endif; ?>
         </div>
+    </div>
 
     <div class="overflow-x-auto">
         <table class="w-full text-sm">

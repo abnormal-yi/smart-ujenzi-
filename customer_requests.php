@@ -17,8 +17,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_pm'])) {
     $pmId = (int)$_POST['pm_id'];
     runQuery("UPDATE customer_requests SET assigned_pm_id = ?, status = 'Reviewed' WHERE id = ?", [$pmId, $reqId]);
     runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'New request assigned to you')", [$pmId]);
+    $req = runQuery("SELECT customer_id FROM customer_requests WHERE id = ?", [$reqId]);
+    if ($req) {
+        runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'Your request has been reviewed. A project manager has been assigned.')", [$req[0]['customer_id']]);
+    }
     logActivity('request_assigned', 'customer_request', $reqId, "PM #{$pmId} assigned to request #{$reqId}");
-    $success = 'Project Manager assigned!';
+    $success = 'Project Manager assigned! Client notified.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request'])) {
+    $reqId = (int)$_POST['request_id'];
+    runQuery("UPDATE customer_requests SET status = 'Accepted' WHERE id = ?", [$reqId]);
+    $req = runQuery("SELECT customer_id FROM customer_requests WHERE id = ?", [$reqId]);
+    if ($req) {
+        runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'Your request has been accepted! You can now upload project documents.')", [$req[0]['customer_id']]);
+    }
+    $success = 'Request accepted! Client can now upload documents.';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reject_request'])) {
+    runQuery("UPDATE customer_requests SET status = 'Rejected' WHERE id = ?", [(int)$_POST['request_id']]);
+    $success = 'Request rejected.';
 }
 
 if ($role === 'project_manager') {
@@ -82,6 +101,12 @@ $statusColors = ['Pending' => 'badge-yellow', 'Reviewed' => 'badge-blue', 'Accep
                                 <?php endforeach; ?>
                             </select>
                             <button type="submit" name="assign_pm" class="text-xs px-2 py-1 bg-slate-900 text-white rounded hover:bg-slate-800">Go</button>
+                        </form>
+                        <?php elseif ($role === 'project_manager' && $r['status'] === 'Reviewed'): ?>
+                        <form method="POST" class="flex items-center gap-1">
+                            <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                            <button type="submit" name="accept_request" class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Accept</button>
+                            <button type="submit" name="reject_request" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
                         </form>
                         <?php else: ?>
                         <span class="text-gray-400 text-xs"><?= htmlspecialchars($r['pm_name'] ?? '—') ?></span>

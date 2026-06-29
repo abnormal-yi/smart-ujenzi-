@@ -6,6 +6,10 @@ require_once __DIR__ . '/../includes/header.php';
 
 $userId = $_SESSION['user_id'];
 $requests = runQuery("SELECT cr.*, u.name as client_name, u.email, c.name as company_name FROM customer_requests cr JOIN users u ON cr.customer_id = u.id LEFT JOIN companies c ON cr.company_id = c.id WHERE cr.assigned_pm_id = ? AND cr.status != 'Accepted' ORDER BY cr.id DESC", [$userId]);
+
+$docCounts = [];
+$docs = runQuery("SELECT request_id, COUNT(*) as cnt FROM request_documents GROUP BY request_id");
+foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
 ?>
 <?php if (empty($requests)): ?>
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
@@ -40,11 +44,22 @@ $requests = runQuery("SELECT cr.*, u.name as client_name, u.email, c.name as com
                 <span class="text-gray-500">Location:</span>
                 <p class="font-medium text-gray-800"><?= htmlspecialchars($req['location'] ?? 'N/A') ?></p>
             </div>
-            </div>
         </div>
         <div class="mb-4">
             <span class="text-sm text-gray-500">Description:</span>
             <p class="text-gray-700 mt-1"><?= htmlspecialchars($req['description']) ?></p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+            <a href="../client/upload-documents.php?request_id=<?= $req['id'] ?>" class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                📄 Documents (<?= (int)($docCounts[$req['id']] ?? 0) ?> files)
+            </a>
+            <?php if ($req['status'] === 'Reviewed'): ?>
+            <form method="POST" action="../customer_requests.php" class="flex items-center gap-2 ml-auto">
+                <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                <button type="submit" name="accept_request" class="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700">Accept</button>
+                <button type="submit" name="reject_request" class="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
+            </form>
+            <?php endif; ?>
         </div>
     </div>
     <?php endforeach; ?>

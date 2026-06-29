@@ -59,10 +59,12 @@ $tasks = runQuery("SELECT t.*, p.name as project_name, u.name as fundi_name FROM
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Assign Fundi</label>
-                        <select name="fundi_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
+                        <select name="fundi_id" id="fundiSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500">
                             <option value="">Select Fundi (optional)</option>
-                            <?php foreach ($fundis as $f): ?>
-                                <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['name']) ?></option>
+                            <?php foreach ($fundis as $f):
+                                $projIds = array_keys(array_filter($assignedMap, fn($ids) => in_array($f['id'], $ids)));
+                            ?>
+                                <option value="<?= $f['id'] ?>" data-projects='<?= json_encode($projIds) ?>'><?= htmlspecialchars($f['name']) ?> (<?= htmlspecialchars($f['skills']) ?>)</option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -75,6 +77,16 @@ $tasks = runQuery("SELECT t.*, p.name as project_name, u.name as fundi_name FROM
                     </button>
                 </div>
             </form>
+            <script>
+            document.querySelector('select[name="project_id"]').addEventListener('change', function() {
+                const pid = this.value;
+                document.querySelectorAll('#fundiSelect option').forEach(opt => {
+                    if (!opt.value) return;
+                    const projs = JSON.parse(opt.dataset.projects || '[]');
+                    opt.hidden = projs.includes(parseInt(pid));
+                });
+            });
+            </script>
         </div>
     </div>
 
