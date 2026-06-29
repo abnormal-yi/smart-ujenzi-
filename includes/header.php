@@ -8,7 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Custom application styles -->
     <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="shortcut icon" href="/favicon.svg">
 </head>
 <body class="min-h-screen bg-gray-50 flex">
 

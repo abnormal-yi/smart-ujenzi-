@@ -79,6 +79,7 @@ if (file_exists($cacheFile) && filemtime($cacheFile) > time() - 86400) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartUjenzi - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <script>
 var TZ_REGIONS = <?= $jsonRegions ?>;
 var TZ_DISTRICTS = <?= $jsonDistricts ?>;
