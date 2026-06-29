@@ -34,32 +34,31 @@ foreach ($projects as &$p) {
 }
 unset($p);
 
-if ($singleProjectId && !empty($projects)) {
-    $proj = reset($projects);
-    if ($proj['start_date'] && $proj['end_date']) {
-        $s = strtotime($proj['start_date']);
-        $e = strtotime($proj['end_date']);
-        $minDate = strtotime('monday this week', $s);
-        if ($minDate > $s) $minDate = strtotime('-7 days', $minDate);
-        $maxDate = strtotime('sunday this week', $e);
-    }
-}
-
 if (!$minDate) $minDate = time();
 if (!$maxDate) $maxDate = time() + 86400 * 30;
 
-$totalDays = max(1, ceil(($maxDate - $minDate) / 86400));
+// Timeline — align to Monday of first week, round up to next full week
+$tlStart = strtotime('monday this week', $minDate);
+if ($tlStart > $minDate) $tlStart = strtotime('-7 days', $tlStart);
+$tlEnd = $maxDate + 86400 * 6;
+$tlWeeks = max(1, ceil(($tlEnd - $tlStart) / 604800));
 $today = time();
 
-function pct($dateStr, $minDate, $totalDays): float {
-    $ts = strtotime($dateStr);
-    $day = ceil(($ts - $minDate) / 86400);
-    return round(($day / $totalDays) * 100, 1);
+// Map a date to { left, width } as percentages of the total timeline
+function ganttPos($dateStart, $dateEnd, $tlStart, $tlWeeks): array {
+    $s = strtotime($dateStart);
+    $e = strtotime($dateEnd);
+    $sWeek = max(0, floor(($s - $tlStart) / 604800));
+    $eWeek = min($tlWeeks - 1, max(0, ceil(($e - $tlStart) / 604800) - 1));
+    if ($eWeek < $sWeek) $eWeek = $sWeek;
+    $step = 100 / $tlWeeks;
+    return [
+        'left'  => round($sWeek * $step, 2),
+        'width' => round(($eWeek - $sWeek + 1) * $step, 2),
+    ];
 }
 
 $projectName = $singleProjectId && !empty($projects) ? $projects[array_key_first($projects)]['name'] ?? '' : '';
-
-$weekRef = $singleProjectId && !empty($projects) ? $minDate : $minDate;
 ?>
 <style>
 .gantt-container { position: relative; overflow-x: auto; }
@@ -99,45 +98,24 @@ $weekRef = $singleProjectId && !empty($projects) ? $minDate : $minDate;
             <div class="gantt-label-col">Project / Tasks</div>
             <div class="gantt-chart-col" style="position:relative;">
                 <?php
-                $monday = strtotime('monday this week', $minDate);
-                if ($monday > $minDate) $monday = strtotime('-7 days', $monday);
-                $weekStarts = [];
-                $cursor = $monday;
-                $weekNum = 1;
-                while ($cursor <= $maxDate + 86400 * 7) {
-                    $weekStarts[] = $cursor;
-                    $cursor = strtotime('+7 days', $cursor);
-                }
-                foreach ($weekStarts as $i => $ws):
-                    $left = pct(date('Y-m-d', $ws), $minDate, $totalDays);
-                    if ($i > 0 && $weekStarts[$i-1]) {
-                        $prevLeft = pct(date('Y-m-d', $weekStarts[$i-1]), $minDate, $totalDays);
-                        $w = round($left - $prevLeft, 2);
-                    } else {
-                        $w = 0;
-                    }
-                    if ($w <= 0) continue;
-                    $alt = $i % 2 === 0;
-                    $weekLabel = '';
-                    if ($singleProjectId) {
-                        $weekLabel = 'W' . $weekNum;
-                        $weekNum++;
-                    } else {
-                        $weekLabel = date('M j', $ws);
-                    }
+                $step = 100 / $tlWeeks;
+                for ($w = 0; $w < $tlWeeks; $w++):
+                    $ws = $tlStart + $w * 604800;
+                    $left = round($w * $step, 2);
                 ?>
-                <div class="gantt-week <?= $alt ? 'gantt-week-alt' : '' ?>" style="left:<?= $left ?>%;width:<?= $w ?>%;"><?= $weekLabel ?></div>
-                <?php endforeach; ?>
-                <?php if ($today >= $minDate && $today <= $maxDate): ?>
-                <div class="gantt-today" style="left:<?= pct(date('Y-m-d', $today), $minDate, $totalDays) ?>%;"></div>
+                <div class="gantt-week <?= $w % 2 === 1 ? 'gantt-week-alt' : '' ?>" style="left:<?= $left ?>%;width:<?= $step ?>%;">
+                    <?= $singleProjectId ? 'W' . ($w + 1) : date('M j', $ws) ?>
+                </div>
+                <?php endfor; ?>
+                <?php if ($today >= $tlStart && $today <= $tlEnd): ?>
+                <div class="gantt-today" style="left:<?= round((floor(($today - $tlStart) / 604800)) * $step, 2) ?>%;"></div>
                 <?php endif; ?>
             </div>
         </div>
 
         <?php foreach ($projects as $p):
             if (!$p['start_date'] || !$p['end_date']) continue;
-            $left = pct($p['start_date'], $minDate, $totalDays);
-            $width = max(1, round(pct($p['end_date'], $minDate, $totalDays) - $left, 1));
+            $pos = ganttPos($p['start_date'], $p['end_date'], $tlStart, $tlWeeks);
             $statusClass = match($p['status']) {
                 'Completed' => 'bg-completed',
                 'Ongoing', 'In Progress' => 'bg-progress',
@@ -151,23 +129,17 @@ $weekRef = $singleProjectId && !empty($projects) ? $minDate : $minDate;
                 <span class="text-xs text-gray-400 ml-auto"><?= date('M j', strtotime($p['start_date'])) ?> - <?= date('M j', strtotime($p['end_date'])) ?></span>
             </div>
             <div class="gantt-row-chart">
-                <div class="gantt-bar bg-project" style="left:<?= $left ?>%;width:<?= $width ?>%;" title="<?= htmlspecialchars($p['name'] . ' (' . $p['status'] . ')') ?>">
+                <div class="gantt-bar bg-project" style="left:<?= $pos['left'] ?>%;width:<?= $pos['width'] ?>%;" title="<?= htmlspecialchars($p['name'] . ' (' . $p['status'] . ')') ?>">
                     <?= htmlspecialchars($p['name']) ?>
                 </div>
             </div>
         </div>
 
         <?php foreach ($p['tasks'] as $t):
-            $tStart = strtotime($p['start_date']);
-            if ($t['deadline']) {
-                $tEnd = strtotime($t['deadline']);
-            } else {
-                $tEnd = $tStart + 86400 * 14;
-            }
-            if ($tEnd < $minDate || $tStart > $maxDate) continue;
-            $tLeft = max(0, pct(date('Y-m-d', $tStart), $minDate, $totalDays));
-            $tRight = min(100, pct(date('Y-m-d', $tEnd), $minDate, $totalDays));
-            $tWidth = max(1, round($tRight - $tLeft, 1));
+            $tStart = $p['start_date'];
+            $tEnd = $t['deadline'] ?: date('Y-m-d', strtotime($p['start_date'] . ' +14 days'));
+            if (strtotime($tEnd) < $tlStart || strtotime($tStart) > $tlEnd) continue;
+            $tPos = ganttPos($tStart, $tEnd, $tlStart, $tlWeeks);
             $tClass = match($t['status']) {
                 'Completed' => 'bg-completed',
                 'In Progress' => 'bg-progress',
@@ -177,7 +149,7 @@ $weekRef = $singleProjectId && !empty($projects) ? $minDate : $minDate;
         <div class="gantt-subrow">
             <div class="gantt-sub-label">↳ <?= htmlspecialchars($t['name']) ?></div>
             <div class="gantt-sub-chart">
-                <div class="gantt-task-bar <?= $tClass ?>" style="left:<?= $tLeft ?>%;width:<?= $tWidth ?>%;" title="<?= htmlspecialchars($t['name'] . ' (' . $t['status'] . ')') ?>"></div>
+                <div class="gantt-task-bar <?= $tClass ?>" style="left:<?= $tPos['left'] ?>%;width:<?= $tPos['width'] ?>%;" title="<?= htmlspecialchars($t['name'] . ' (' . $t['status'] . ')') ?>"></div>
             </div>
         </div>
         <?php endforeach; ?>
