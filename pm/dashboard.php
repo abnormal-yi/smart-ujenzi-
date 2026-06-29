@@ -11,7 +11,11 @@ $pendingRequests = runQuery("SELECT COUNT(*) as c FROM users WHERE role = 'fundi
 $tasksDue = runQuery("SELECT COUNT(*) as c FROM tasks t JOIN projects p ON t.project_id = p.id WHERE p.project_manager_id = ? AND t.deadline < CURDATE() AND t.status != 'Completed'", [$userId])[0]['c'];
 
 $myProjects = runQuery("SELECT * FROM projects WHERE project_manager_id = ? ORDER BY status, start_date DESC", [$userId]);
-$myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_name FROM customer_requests cr JOIN users u ON cr.customer_id = u.id LEFT JOIN companies c ON cr.company_id = c.id WHERE cr.assigned_pm_id = ? ORDER BY cr.id DESC", [$userId]);
+$myRequests = runQuery("SELECT cr.*, u.name as client_name, u.email as client_email, c.name as company_name FROM customer_requests cr JOIN users u ON cr.customer_id = u.id LEFT JOIN companies c ON cr.company_id = c.id WHERE cr.assigned_pm_id = ? ORDER BY cr.id DESC", [$userId]);
+
+$docCounts = [];
+$docs = runQuery("SELECT request_id, COUNT(*) as cnt FROM request_documents GROUP BY request_id");
+foreach ($docs as $d) $docCounts[$d['request_id']] = $d['cnt'];
 ?>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -67,7 +71,9 @@ $myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_na
                     <tbody>
                         <?php foreach ($myProjects as $p): ?>
                         <tr class="border-b border-gray-50">
-                            <td class="py-3 text-gray-800 font-medium"><?= htmlspecialchars($p['name']) ?></td>
+                            <td class="py-3 text-gray-800 font-medium">
+                                <a href="../gantt.php" class="text-blue-600 hover:underline"><?= htmlspecialchars($p['name']) ?></a>
+                            </td>
                             <td class="py-3">
                                 <span class="px-2 py-1 text-xs rounded-full <?= $p['status'] === 'Completed' ? 'bg-green-100 text-green-700' : ($p['status'] === 'Ongoing' || $p['status'] === 'In Progress' ? 'bg-blue-100 text-blue-700' : ($p['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700')) ?>"><?= $p['status'] ?></span>
                             </td>
@@ -97,16 +103,37 @@ $myRequests = runQuery("SELECT cr.*, u.name as client_name, c.name as company_na
                         <tr class="text-left text-gray-500 border-b border-gray-100">
                             <th class="pb-3 font-medium">Client</th>
                             <th class="pb-3 font-medium">Company</th>
+                            <th class="pb-3 font-medium">Docs</th>
                             <th class="pb-3 font-medium">Status</th>
+                            <th class="pb-3 font-medium">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($myRequests as $r): ?>
                         <tr class="border-b border-gray-50">
-                            <td class="py-3 text-gray-800"><?= htmlspecialchars($r['client_name']) ?></td>
+                            <td class="py-3 text-gray-800">
+                                <?= htmlspecialchars($r['client_name']) ?>
+                                <div class="text-xs text-gray-400"><?= htmlspecialchars($r['client_email'] ?? '') ?></div>
+                            </td>
                             <td class="py-3 text-gray-600"><?= htmlspecialchars($r['company_name'] ?? 'N/A') ?></td>
                             <td class="py-3">
-                                <span class="px-2 py-1 text-xs rounded-full <?= $r['status'] === 'Approved' ? 'bg-green-100 text-green-700' : ($r['status'] === 'Pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700') ?>"><?= $r['status'] ?? 'Pending' ?></span>
+                                <a href="../client/upload-documents.php?request_id=<?= $r['id'] ?>" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                    📄 <?= (int)($docCounts[$r['id']] ?? 0) ?>
+                                </a>
+                            </td>
+                            <td class="py-3">
+                                <span class="px-2 py-1 text-xs rounded-full <?= $r['status'] === 'Accepted' ? 'bg-green-100 text-green-700' : ($r['status'] === 'Reviewed' ? 'bg-blue-100 text-blue-700' : ($r['status'] === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700')) ?>"><?= $r['status'] ?? 'Pending' ?></span>
+                            </td>
+                            <td class="py-3">
+                                <?php if ($r['status'] === 'Reviewed'): ?>
+                                <form method="POST" action="../customer_requests.php" class="flex items-center gap-1">
+                                    <input type="hidden" name="request_id" value="<?= $r['id'] ?>">
+                                    <button type="submit" name="accept_request" class="text-xs px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700">Accept</button>
+                                    <button type="submit" name="reject_request" class="text-xs px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700">Reject</button>
+                                </form>
+                                <?php elseif ($r['status'] === 'Accepted'): ?>
+                                <span class="text-xs text-green-600">✓ Contact: <?= htmlspecialchars($r['client_email'] ?? '') ?></span>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
