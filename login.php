@@ -148,21 +148,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="max-w-md w-full mx-auto">
             <h2 class="text-4xl font-bold text-center mb-10">Welcome to SmartUjenzi!</h2>
 
-            <form method="POST" class="space-y-6">
+            <form method="POST" class="space-y-6" autocomplete="off">
                 <?php if ($error): ?>
                     <div class="p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-500 text-sm text-center"><?= $error ?></div>
                 <?php endif; ?>
 
                 <div class="relative">
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Email</label>
-                    <input type="email" name="email"
+                    <input type="email" name="email" autocomplete="off"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#20D08A] transition-colors"
                            placeholder="you@example.com" required>
                 </div>
 
                 <div class="relative">
                     <label class="absolute -top-2.5 left-4 bg-[#0C0D10] px-2 text-xs font-medium text-gray-400">Password</label>
-                    <input type="password" name="password"
+                    <input type="password" name="password" autocomplete="new-password"
                            class="w-full bg-transparent border border-gray-600 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-[#20D08A] transition-colors"
                            placeholder="********" required>
                 </div>
