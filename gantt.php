@@ -34,10 +34,21 @@ foreach ($projects as &$p) {
 }
 unset($p);
 
+if ($singleProjectId && !empty($projects)) {
+    $proj = reset($projects);
+    if ($proj['start_date'] && $proj['end_date']) {
+        $s = strtotime($proj['start_date']);
+        $e = strtotime($proj['end_date']);
+        $minDate = strtotime('monday this week', $s);
+        if ($minDate > $s) $minDate = strtotime('-7 days', $minDate);
+        $maxDate = strtotime('sunday this week', $e);
+    }
+}
+
 if (!$minDate) $minDate = time();
 if (!$maxDate) $maxDate = time() + 86400 * 30;
 
-$totalDays = max(1, ceil(($maxDate - $minDate) / 86400) + 30);
+$totalDays = max(1, ceil(($maxDate - $minDate) / 86400));
 $today = time();
 
 function pct($dateStr, $minDate, $totalDays): float {
