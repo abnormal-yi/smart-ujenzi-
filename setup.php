@@ -145,7 +145,8 @@ try {
             $pdo->exec("ALTER TABLE users ADD COLUMN approved TINYINT(1) DEFAULT 1");
             out("  [OK] Added approved column to users", $isCLI);
         }
-        if (!in_array('icon', $cols)) {
+        $projCols = $pdo->query("SHOW COLUMNS FROM projects")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('icon', $projCols)) {
             $pdo->exec("ALTER TABLE projects ADD COLUMN icon VARCHAR(10) DEFAULT '🏗️'");
             out("  [OK] Added icon column to projects", $isCLI);
         }
