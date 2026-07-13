@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mat = runQuery('SELECT * FROM materials WHERE id = ?', [$_POST['id']]);
         // Send notification if stock has fallen to or below the low stock threshold
         if ($mat && $mat[0]['quantity'] <= $mat[0]['low_stock_threshold']) {
-            executeQuery('INSERT INTO notifications (user_id, message, is_read) SELECT id, ?, 0 FROM users WHERE role IN ("admin", "project_manager")',
+            executeQuery('INSERT INTO notifications (user_id, message, link, is_read) SELECT id, ?, "/materials.php", 0 FROM users WHERE role IN ("admin", "project_manager")',
                 ["Low stock alert: {$mat[0]['name']} (Qty: {$mat[0]['quantity']})"]);
         }
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Stock updated'];

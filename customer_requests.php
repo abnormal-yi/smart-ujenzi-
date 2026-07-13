@@ -16,10 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['assign_pm'])) {
     $reqId = (int)$_POST['request_id'];
     $pmId = (int)$_POST['pm_id'];
     runQuery("UPDATE customer_requests SET assigned_pm_id = ?, status = 'Reviewed' WHERE id = ?", [$pmId, $reqId]);
-    runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'New request assigned to you')", [$pmId]);
+    runQuery("INSERT INTO notifications (user_id, message, link) VALUES (?, 'New request assigned to you', '/customer_requests.php')", [$pmId]);
     $req = runQuery("SELECT customer_id FROM customer_requests WHERE id = ?", [$reqId]);
     if ($req) {
-        runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'Your request has been reviewed. A project manager has been assigned.')", [$req[0]['customer_id']]);
+        runQuery("INSERT INTO notifications (user_id, message, link) VALUES (?, 'Your request has been reviewed. A project manager has been assigned.', '/client/requests.php')", [$req[0]['customer_id']]);
     }
     logActivity('request_assigned', 'customer_request', $reqId, "PM #{$pmId} assigned to request #{$reqId}");
     $success = 'Project Manager assigned! Client notified.';
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request'])) {
     runQuery("UPDATE customer_requests SET status = 'Accepted' WHERE id = ?", [$reqId]);
     $req = runQuery("SELECT customer_id FROM customer_requests WHERE id = ?", [$reqId]);
     if ($req) {
-        runQuery("INSERT INTO notifications (user_id, message) VALUES (?, 'Your request has been accepted! You can now upload project documents.')", [$req[0]['customer_id']]);
+        runQuery("INSERT INTO notifications (user_id, message, link) VALUES (?, 'Your request has been accepted! You can now upload project documents.', '/client/upload-documents.php?id=" . ((int)$_POST['request_id']) . "')", [$req[0]['customer_id']]);
     }
     $success = 'Request accepted! Client can now upload documents.';
 }

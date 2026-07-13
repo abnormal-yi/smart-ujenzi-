@@ -119,6 +119,7 @@ CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,                    -- Foreign key to users(id) - the recipient
     message TEXT NOT NULL,                    -- Notification message content
+    link VARCHAR(500) DEFAULT NULL,          -- URL to navigate to when clicked
     is_read INT DEFAULT 0,                   -- 0 = unread, 1 = read
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP  -- Timestamp of when notification was created
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

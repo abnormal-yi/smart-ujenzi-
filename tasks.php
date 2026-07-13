@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     $task = runQuery("SELECT * FROM tasks WHERE id = ?", [$taskId]);
     if ($task) {
-        executeQuery("INSERT INTO notifications (user_id, message, is_read) SELECT id, ?, 0 FROM users WHERE role IN ('super_admin', 'admin', 'project_manager')",
+        executeQuery("INSERT INTO notifications (user_id, message, link, is_read) SELECT id, ?, '/tasks.php', 0 FROM users WHERE role IN ('super_admin', 'admin', 'project_manager')",
             ["Task '{$task[0]['name']}' status updated to {$status}"]);
     }
     $success = 'Task status updated!';

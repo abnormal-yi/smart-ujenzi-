@@ -92,41 +92,35 @@ $filteredNav = array_filter($navItems, fn($item) => in_array($role, $item['roles
 
         <!-- Right-side header icons: bell + language switcher + user avatar -->
         <div class="flex items-center space-x-4 ml-auto relative">
-            <!-- Notification bell with unread indicator dot -->
+            <!-- Notification bell with unread count badge -->
             <div class="relative">
                 <button onclick="toggleNotifications()" class="p-2 text-gray-500 hover:bg-gray-100 rounded-full relative">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <?php if ($unreadCount > 0): ?>
-                        <!-- Red dot indicating unread notifications -->
-                        <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                    <?php endif; ?>
+                    <span id="notif-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 <?= $unreadCount > 0 ? '' : 'hidden' ?>"><?= $unreadCount ?></span>
                 </button>
 
                 <!-- Notification dropdown panel -->
                 <div id="notif-dropdown" class="hidden absolute top-12 right-0 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-96 flex flex-col">
                     <div class="p-3 border-b border-gray-100 font-bold text-gray-800 flex justify-between items-center">
                         <span>Notifications</span>
-                        <?php if ($unreadCount > 0): ?>
-                            <span class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full"><?= $unreadCount ?> unread</span>
-                        <?php endif; ?>
+                        <span id="notif-header-badge" class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full <?= $unreadCount > 0 ? '' : 'hidden' ?>"><?= $unreadCount ?> unread</span>
                     </div>
-                    <div class="overflow-y-auto flex-1">
+                    <div id="notif-list" class="overflow-y-auto flex-1">
                         <?php if (empty($notifications)): ?>
-                            <!-- Empty state when no notifications exist -->
                             <div class="p-4 text-center text-gray-500 text-sm">No notifications</div>
                         <?php else: ?>
                             <?php foreach ($notifications as $n): ?>
-                                <!-- Clickable notification item: marks as read on click -->
-                                <div onclick="markRead(<?= $n['id'] ?>)" class="p-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors <?= $n['is_read'] ? 'opacity-50' : 'bg-blue-50/30' ?>">
+                                <a href="<?= htmlspecialchars($n['link'] ?? '#') ?>"
+                                   onclick="event.preventDefault(); markRead(<?= $n['id'] ?>, '<?= htmlspecialchars($n['link'] ?? '', ENT_QUOTES) ?>')"
+                                   class="block p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors <?= $n['is_read'] ? 'opacity-50' : 'bg-blue-50/30' ?>">
                                     <div class="flex items-start">
                                         <svg class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0 <?= $n['is_read'] ? 'text-gray-400' : 'text-blue-500' ?>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
                                         <div>
-                                            <!-- Notification message text and timestamp -->
                                             <p class="text-sm <?= $n['is_read'] ? 'text-gray-600' : 'text-gray-800 font-medium' ?>"><?= htmlspecialchars($n['message']) ?></p>
                                             <span class="text-xs text-gray-400"><?= date('M j, Y g:i A', strtotime($n['created_at'])) ?></span>
                                         </div>
                                     </div>
-                                </div>
+                                </a>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>

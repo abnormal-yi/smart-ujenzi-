@@ -197,6 +197,15 @@ try {
             out("  [OK] Created audit_logs table", $isCLI);
         }
 
+        // Add link column to notifications if missing
+        if (in_array('notifications', $tables)) {
+            $notifCols = $pdo->query("SHOW COLUMNS FROM notifications")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('link', $notifCols)) {
+                $pdo->exec("ALTER TABLE notifications ADD COLUMN link VARCHAR(500) DEFAULT NULL");
+                out("  [OK] Added link column to notifications", $isCLI);
+            }
+        }
+
         // Create request_documents table if missing
         if (!in_array('request_documents', $tables)) {
             $pdo->exec("CREATE TABLE IF NOT EXISTS request_documents (
